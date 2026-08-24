@@ -1,6 +1,7 @@
 export const CardTypeEnum = {
-	TopUp: 0x02699f,
-	PersonalUnlimited: 0x0a9775,
+	AvanzaTopUp: 0x02699f,
+	AvanzaPersonalUnlimited: 0x0a9775,
+	LazoTopUp: 0x0d371f,
 } as const;
 
 /**
@@ -20,10 +21,12 @@ export function decodeCardType(block: Uint8Array): keyof typeof CardTypeEnum {
 		);
 	}
 	switch (type) {
-		case CardTypeEnum.TopUp:
-			return "TopUp";
-		case CardTypeEnum.PersonalUnlimited:
-			return "PersonalUnlimited";
+		case CardTypeEnum.AvanzaTopUp:
+			return "AvanzaTopUp";
+		case CardTypeEnum.AvanzaPersonalUnlimited:
+			return "AvanzaPersonalUnlimited";
+		case CardTypeEnum.LazoTopUp:
+			return "LazoTopUp";
 		default:
 			throw new Error(`Unknown card type: ${type.toString(16)}`);
 	}

@@ -1,14 +1,14 @@
 {
-	"name": "zgz-avanza",
+	"name": "zgz-transport",
 	"version": "1.2.0",
 	"description": "Zaragoza Avanza transit pass card encoder & decoder",
-	"homepage": "https://git.hloth.dev/hloth/zgz-avanza",
+	"homepage": "https://git.hloth.dev/hloth/zgz-transport",
 	"bugs": {
-		"url": "https://git.hloth.dev/hloth/zgz-avanza/issues"
+		"url": "https://git.hloth.dev/hloth/zgz-transport/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://git.hloth.dev/hloth/zgz-avanza.git"
+		"url": "https://git.hloth.dev/hloth/zgz-transport.git"
 	},
 	"funding": "https://hloth.dev/donate",
 	"license": "MIT",

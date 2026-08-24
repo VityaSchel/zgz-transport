@@ -1,4 +1,4 @@
-# Zaragoza Avanza Bus Transit Pass pwn
+# Zaragoza & Aragon Transport Card Spec
 
 > [!IMPORTANT]
 > ⚠️ **Aviso legal:** Este repositorio es un proyecto de investigación de seguridad independiente.  \
@@ -6,15 +6,13 @@
 > No se proporcionará asistencia para ningún uso ilícito. \
 > Consulta [LEGAL.md](./LEGAL.md) para el descargo de responsabilidad completo.
 
-Zaragoza Avanza bus card (public transit pass) full up-to-date specification, reverse engineered from multiple MIFARE Classic 1K card dumps. This project intends to be a security research paper, publicly available for anyone for free and is not qualified as a guide. You cannot follow this resource as a guide to commit fraud.
+Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date specification, reverse engineered from multiple MIFARE Classic card dumps. This project intends to be a security research paper, publicly available for anyone for free and is not qualified as a guide. There are no step-by-step instructions on how to commit fraud.
 
-Presented to you by [zaragoza ⚡️ nerds](https://discord.gg/NRdBaqv3hB) 🤓
-
-- [Zaragoza Avanza Bus Transit Pass pwn](#zaragoza-avanza-bus-transit-pass-pwn)
+- [Zaragoza \& Aragon Transport Card Spec](#zaragoza--aragon-transport-card-spec)
 	- [Getting started](#getting-started)
-		- [Keys](#keys)
-		- [Sectors](#sectors)
-		- [Blocks](#blocks)
+	- [Keys](#keys)
+	- [Sectors](#sectors)
+	- [Blocks](#blocks)
 	- [Definitions](#definitions)
 		- [Card ID](#card-id)
 		- [Card type](#card-type)
@@ -27,6 +25,8 @@ Presented to you by [zaragoza ⚡️ nerds](https://discord.gg/NRdBaqv3hB) 🤓
 		- [Subscription metadata](#subscription-metadata)
 		- [Subscription](#subscription)
 		- [Blocks 5 and 10](#blocks-5-and-10)
+	- [Implementations](#implementations)
+		- [JavaScript/TypeScript](#javascripttypescript)
 	- [Contributing](#contributing)
 	- [See also](#see-also)
 	- [Acknowledgements](#acknowledgements)
@@ -36,40 +36,37 @@ Presented to you by [zaragoza ⚡️ nerds](https://discord.gg/NRdBaqv3hB) 🤓
 
 ## Getting started
 
+Zaragoza and Aragon public transport uses Avanza and Lazo cards, both of which are Mifare Classic, meaning they're vulnerable to Crypto-1 attack. The [keys](#keys) for cards can be dumped using a Proxmark device, but since they're static and well-known, you can use those provided in this repository.
+
+
+
 The card has 16 sectors, each with 4 blocks of 16 bytes each. Each sector has two keys (Key A and Key B) that control access to the blocks within that sector.
 
-This project can also be used as a JavaScript/TypeScript library by installing it from [npm](https://www.npmjs.com/package/zgz-avanza):
+## Keys
 
-```bash
-bun add zgz-avanza
-# npm install zgz-avanza
-# yarn install zgz-avanza
-# pnpm install zgz-avanza
-```
+Avanza Tarjeta Bus:
 
-or [JSR](https://jsr.io/@hloth/zgz-avanza):
+| Sectors       | Key A          | Key B          |
+| ------------- | -------------- | -------------- |
+| 0-8           | `04000C0F0903` | `0B02070A0409` |
+| 9-15 (unused) | `A0A1A2A3A4A5` | `B0B1B2B3B4B5` |
+|               |                |                |
 
-```bash
-bunx jsr add @hloth/zgz-avanza
-# npx jsr add @hloth/zgz-avanza
-# deno add jsr:@hloth/zgz-avanza
-# yarn add jsr:@hloth/zgz-avanza
-# pnpm add jsr:@hloth/zgz-avanza
-```
+Lazo card:
 
-Then use [index.ts](src/index.ts) as a starting point.
+| Sectors        | Key A          | Key B          |
+| -------------- | -------------- | -------------- |
+| 0-31           | `4E303D402F20` | `243372407C2E` |
+| 32             | `216F5B212A7A` | `44202E476E5B` |
+| 33             | `5148755C3427` | `3C4520753758` |
+| 34             | Unknown        | `206F7C4C4F36` |
+| 35             | `5246612E7C4B` | Unknown        |
+| 36             | `354B39454861` | `567D734C403C` |
+| 37             | `455D732C385F` | `2426217B3B3B` |
+| 38-39 (unused) | `FFFFFFFFFFFF` | `FFFFFFFFFFFF` |
+|                |                |                |
 
-### Keys
-
-| Sectors | Key A          | Key B          |
-| ------- | -------------- | -------------- |
-| 0-8     | `04000C0F0903` | `0B02070A0409` |
-| 9-15    | `A0A1A2A3A4A5` | `B0B1B2B3B4B5` |
-|         |                |                |
-
-Sectors 0-8 have well-known standard MIFARE Classic keys dumped thanks to an ancient [vulnerability](https://en.wikipedia.org/wiki/MIFARE#MIFARE_Classic) in Crypto-1 algorithm utilized by all MIFARE Classic cards. Sectors 9-15 have default factory keys and seem to be empty.
-
-### Sectors
+## Sectors
 
 | Sector | Description                      |
 | ------ | -------------------------------- |
@@ -91,7 +88,7 @@ Sectors 0-8 have well-known standard MIFARE Classic keys dumped thanks to an anc
 | 15     | Unused                           |
 |        |                                  |
 
-### Blocks
+## Blocks
 
 | Sector | Block | Description                                                                                                                                                                                     | Template                           | Access Conditions    |
 | ------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------- |
@@ -143,7 +140,7 @@ The balance is stored in blocks 8 and 9 for redundancy.
 
 ### Card ID
 
-- [00-01] ASCII prefix (`4245` for `BE`, `4250` for `BP`)
+- [00-01] ASCII prefix (`4245` for `BE`, `4250` for `BP`, `4354` for `CT`)
 - [02-04] Zaragoza card ID number (together forming prefix + number)
 - [05-14] empty, zeroed
 - [15] XOR of all previous bytes
@@ -152,26 +149,33 @@ See [src/id.ts](./src/id.ts) for encoder/decoder implementation and [test/id.tes
 
 ### Card type
 
-- [00-14] Card type (`02699F` for balance cards, `0A9775` for personal expiring cards)
+- [00-14] Card type
 - [15] XOR of all previous bytes
+
+| Card type                     | Value                            |
+| ----------------------------- | -------------------------------- |
+| Balance top-up Avanza card    | `02699F000000000000000000000000` |
+| Personal expiring Avanza card | `0A9775000000000000000000000000` |
+| Balance top-up Lazo card      | `0D371F000000000000000000000000` |
+|                               |                                  |
 
 See [src/type.ts](./src/type.ts) for encoder/decoder implementation and [test/type.test.ts](./test/type.test.ts) for test cases in JavaScript/TypeScript.
 
 ### Balance
 
-€1.00 = 1000 units. For example, a balance of €5.00 would be stored as `8813000077ecffff8813000002fd02fd` in blocks 8 and 9:
+€1.00 = 1000 units. For example, a balance of €5.00 would be stored as `8813000077ECFFFF8813000002FD02FD` in blocks 8 and 9:
 
 1. Convert `5.00` to units: `5000`
 2. Convert `5000` to hexadecimal: `1388`
 3. Convert to little-endian: `8813`
 4. Calculate the complement: `77ec` (flip every bit)
-5. Write the value, complement, and value again, then append the static address `02fd02fd` and write to blocks 8 and 9
+5. Write the value, complement, and value again, then append the static address `02FD02FD` and write to blocks 8 and 9
 
 - Bytes 00-03: `88130000` -> little-endian -> `5000`
-- Bytes 04-07: `77ecffff` -> complement of `5000`
+- Bytes 04-07: `77ECFFFF` -> complement of `5000`
 - Bytes 08-11: `88130000` -> value repeated
-- Bytes 12-13: `02fd` -> address bytes (block pointer for transfer operations)
-- Bytes 14-15: `02fd` -> address bytes repeated
+- Bytes 12-13: `02FD` -> address bytes (block pointer for transfer operations)
+- Bytes 14-15: `02FD` -> address bytes repeated
 
 Balance on personal unlimited cards is always `00000000FFFFFFFF0000000002FD02FD` (zero).
 
@@ -183,8 +187,9 @@ Transaction logs are stored in sectors 1 (block 5), 7 (blocks 28-30) and 8 (bloc
 
 #### Ride (spend)
 
-- [00-02] Always `020002` for top up cards and `0A0200` for personal cards; sometimes `020000` for top up cards and `0A0100` for personal cards, cause unknown
-- [03] Unknown constant, could be a fare id or season id, always `00` on personal cards, `88` for top ups
+- [00] The first byte of [Card type](#card-type), e.g. `02` or `0D`
+- [01-02] Unknown; `0002` or sometimes `0000` for Avanza top up cards; `0200` or sometimes `0100` for Avanza personal cards
+- [03] Unknown constant, could be a fare id or season id; `88` for Avanza top up cards; `00` for Avanza personal cards
 - [04] Consecutive payments counter starting from 1 (for transactions paid in the same terminal in a row)
 - [05-06] With 09 most likely stop ID
 - [07] Most likely bus line number, but unknown how to decode lines > 255 and trams
@@ -203,7 +208,7 @@ Transaction logs are stored in sectors 1 (block 5), 7 (blocks 28-30) and 8 (bloc
 #### Top up
 
 - [00-02] Always `020013`
-- [03-09] Unknown, e.g. `88001f2c000800` (for €5.00 top up)
+- [03-09] Unknown, e.g. `88001F2C000800` (for €5.00 top up)
 
 #### All types
 
@@ -313,17 +318,32 @@ someid = always 020002 for top up cards, always 0A0200 for unlimited cards
 
 See [src/block10.ts](./src/block10.ts) for encoder/decoder implementation and [test/block10.test.ts](./test/block10.test.ts) for test cases in JavaScript/TypeScript.
 
+## Implementations
+
+### JavaScript/TypeScript
+
+The JavaScript/TypeScript/Bun library is published in [npm](https://www.npmjs.com/package/zgz-transport):
+
+```bash
+bun add zgz-transport
+# npm install zgz-transport
+# yarn install zgz-transport
+# pnpm install zgz-transport
+```
+
+And [JSR](https://jsr.io/@hloth/zgz-transport):
+
+```bash
+bunx jsr add @hloth/zgz-transport
+# npx jsr add @hloth/zgz-transport
+# deno add jsr:@hloth/zgz-transport
+# yarn add jsr:@hloth/zgz-transport
+# pnpm add jsr:@hloth/zgz-transport
+```
+
+Use [index.ts](src/index.ts) as a starting point.
+
 ## Contributing
-
-If you'd like to contribute your bus card dump, please reach out directly to the author of this project ([@hloth](https://hloth.dev)) through any of social media. 
-
-Contributions are non-traceable, 100% safe and do not modify card contents, simply dumping card contents does not make it detectable or punishable, also dumps themselves cannot be used to affect card remotely. **Dumping contents of your card, inspecting it and even sharing is totally legal.** It's safe and no identifiable information will be published.
-
-Any dumps are appreciated but these are currently highly sought after:
-
-- Personal unlimited cards
-- Social benefits/discounted cards
-- Any card that contributor can provide exact trips dates and time, line numbers and stops locations
 
 If you'd like to contribute to the project's development, consider the following resources:
 
@@ -332,14 +352,12 @@ If you'd like to contribute to the project's development, consider the following
 The spreadsheet with publicly disclosed dumps and highlights:
 
 <a href="https://docs.google.com/spreadsheets/d/1g89saB1URWRZLWsEJm44vJFTosIDfPkh5u8pfxPWGD0/edit">
-	<img alt="Spreadsheet" src="https://git.hloth.dev/hloth/zgz-avanza/raw/branch/main/docs/spreadsheet.avif" width="600" />
+	<img alt="Spreadsheet" src="https://git.hloth.dev/hloth/zgz-transport/raw/branch/main/docs/spreadsheet.avif" width="600" />
 </a>
-
-An extended version of this spreadsheet is held private due to contributors wish to remain anonymous.
 
 ## See also
 
-- [ZGZ Avanza Card Android App](https://git.hloth.dev/hloth/zgz-avanza-card-android)
+- [ZGZ Avanza Card Android App](https://git.hloth.dev/hloth/zgz-transport-card-android)
 
 ## Acknowledgements
 
