@@ -1,6 +1,8 @@
 {
 	"editor.tabCompletion": "on",
 	"eslint.validate": ["javascript", "typescript"],
+	"eslint.workingDirectories": ["lib/javascript"],
+	"prettier.configPath": "lib/javascript/.prettierrc",
 	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"[javascript]": {
@@ -8,6 +10,12 @@
 	},
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[markdown]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
 	},
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": "explicit"

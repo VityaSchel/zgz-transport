@@ -1,10 +1,10 @@
 sample
 node_modules
 .DS_Store
-dist
-test/transactions-private.ts
-test/test.ts
+lib/javascript/dist
+lib/javascript/test/transactions-private.ts
+lib/javascript/test/test.ts
 
 # No publicly disclosed dumps to test against
-test/subscription.test.ts
-test/subscription-metadata.test.ts
+lib/javascript/test/subscription.test.ts
+lib/javascript/test/subscription-metadata.test.ts

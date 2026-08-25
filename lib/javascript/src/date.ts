@@ -1,45 +1,29 @@
-import { assertInRange } from "./utils";
+import { assertInRange, assertLength, readUint16, writeUint16 } from "./bytes";
 
 export type Date16Bit = {
-	/** 2000-2127 */
 	year: number;
-	/** 1-12 */
 	month: number;
-	/** 1-31 */
 	day: number;
 };
 
-/**
- * Decodes a 2 bytes date format.
- * @param data 2 bytes (16 bits) date
- * @returns An object with the decoded year, month and day
- */
-export function decodeDate(data: Uint8Array): Date16Bit {
-	if (data.length !== 2) throw new Error("Encoded date must be 2 bytes");
-
-	const dateInt = (data[0]! << 8) | data[1]!;
-
-	const year = ((dateInt >> 9) & 0x7f) + 2000;
-	const month = (dateInt >> 5) & 0x0f;
-	assertInRange({ month }, 1, 12);
-	const day = dateInt & 0x1f;
-	assertInRange({ day }, 1, 31);
-
-	return { year, month, day };
+export function decodeDate(bytes: Uint8Array): Date16Bit {
+	assertLength(bytes, 2, "date");
+	const packed = readUint16(bytes, 0);
+	const date = {
+		year: (packed >> 9) + 2000,
+		month: (packed >> 5) & 0x0f,
+		day: packed & 0x1f,
+	};
+	assertInRange("month", date.month, 1, 12);
+	assertInRange("day", date.day, 1, 31);
+	return date;
 }
 
-/**
- * Encodes a date into the 2 bytes format.
- * @param date An object with the year, month and day to encode
- * @returns A Uint8Array with the encoded date
- */
-export function encodeDate(date: Date16Bit): Uint8Array {
-	const { year, month, day } = date;
-	assertInRange({ year }, 2000, 2000 + 2 ** 7 - 1);
-	assertInRange({ month }, 1, 12);
-	assertInRange({ day }, 1, 31);
-
-	const dateInt = ((year - 2000) << 9) | ((month & 0x0f) << 5) | (day & 0x1f);
-
-	return new Uint8Array([dateInt >> 8, dateInt & 0xff]);
+export function encodeDate({ year, month, day }: Date16Bit): Uint8Array {
+	assertInRange("year", year, 2000, 2127);
+	assertInRange("month", month, 1, 12);
+	assertInRange("day", day, 1, 31);
+	const bytes = new Uint8Array(2);
+	writeUint16(bytes, 0, ((year - 2000) << 9) | (month << 5) | day);
+	return bytes;
 }

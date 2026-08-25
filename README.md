@@ -1,7 +1,7 @@
 # Zaragoza & Aragon Transport Card Spec
 
 > [!IMPORTANT]
-> ⚠️ **Aviso legal:** Este repositorio es un proyecto de investigación de seguridad independiente.  \
+> ⚠️ **Aviso legal:** Este repositorio es un proyecto de investigación de seguridad independiente. \
 > No está destinado a cometer fraude ni a facilitar el uso indebido del transporte público. \
 > No se proporcionará asistencia para ningún uso ilícito. \
 > Consulta [LEGAL.md](./LEGAL.md) para el descargo de responsabilidad completo.
@@ -57,7 +57,7 @@ Every sector has two keys (Key A and Key B) that control access to its blocks, a
 | Blocks  | 64                                        | 256                                                   |
 |         |                                           |                                                       |
 
-What is stored inside the blocks is the same on both cards and is documented once under [data structures](#data-structures). Block 1 tells the products apart, see [card type](#card-type). Everything that is still unresolved is collected under [open questions](#open-questions).
+What is stored inside the blocks is the same on both cards and is documented once under [data structures](#data-structures). Block 1 tells the products apart, see [card type](#card-type). Everything that is still unresolved is collected under [unconfirmed](#unconfirmed).
 
 ## Avanza Tarjeta Bus
 
@@ -79,39 +79,39 @@ On top up cards Key B can rewrite the keys and access conditions of every sector
 | 0      | 0     | [00-03] RFID's UID<br>[04] BCC (checksum byte)<br>[05] SAK (`88` for MIFARE Classic 1K)<br>[15] last two digits of the manufacturing year (`20` for 2020, `25` for 2025)               | `..,,..,,..880400C8,,0020000000..` | Read-only            |
 |        | 1     | [Card type](#card-type)                                                                                                                                                                | `..,,..000000000000000000000000,,` | Only Key B can write |
 |        | 2     | [Card ID](#card-id)                                                                                                                                                                    | `42,,..,,..00000000000000000000..` | Read-only            |
-|        | 3     | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 3     | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 1      | 4     | Empty on top up cards, see [block 4](#block-4)<br>[15] XOR of all previous bytes                                                                                                       | `00000000000000000000000000000000` | Only Key B can write |
 |        | 5     | Latest [transaction log](#transaction-log) entry                                                                                                                                       | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
-|        | 6     | *Appears* to always be empty                                                                                                                                                           | `00000000000000000000000000000000` | No restrictions      |
-|        | 7     | 1st sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 6     | _Appears_ to always be empty                                                                                                                                                           | `00000000000000000000000000000000` | No restrictions      |
+|        | 7     | 1st sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 2      | 8     | [Balance](#balance)                                                                                                                                                                    | `..,,0000..,,FFFF..,,000002FD02FD` | Value block          |
 |        | 9     | Always has the same value as block 8                                                                                                                                                   | `..,,0000..,,FFFF..,,000002FD02FD` | Value block          |
 |        | 10    | [Journey summary](#journey-summary-block-10), empty on a new card<br>Always `000000000000000A000000000000000A` on unlimited personal cards                                             | `..,,..,,..,,..02..,,..0000..00..` | No restrictions      |
-|        | 11    | 2nd sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 11    | 2nd sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 3      | 12    | [Subscription metadata](#subscription-metadata)                                                                                                                                        | `00000000000000000000000000000000` | Only Key B can write |
 |        | 13    | [Subscription](#subscription) on personal unlimited cards                                                                                                                              | `00000000000000000000000000000000` | Only Key B can write |
 |        | 14    | Copy of block 13                                                                                                                                                                       | `00000000000000000000000000000000` | Only Key B can write |
-|        | 15    | 3rd sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 15    | 3rd sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 4      | 16    | [Subscription metadata](#subscription-metadata) of a second product                                                                                                                    | `00000000000000000000000000000000` | Only Key B can write |
 |        | 17    | [Subscription](#subscription) of the second product                                                                                                                                    | `00000000000000000000000000000000` | Only Key B can write |
 |        | 18    | Copy of block 17                                                                                                                                                                       | `00000000000000000000000000000000` | Only Key B can write |
-|        | 19    | 4th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 19    | 4th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 5      | 20    | Empty                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write |
 |        | 21    | Empty                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write |
 |        | 22    | Empty                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write |
-|        | 23    | 5th sector's trailer blocks                                                                                                                                                            | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 23    | 5th sector's trailer blocks                                                                                                                                                            | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 6      | 24    | Empty on most cards, see [block 24](#block-24)                                                                                                                                         | `00000000000000000000000000000000` | Only Key B can write |
 |        | 25    | Empty                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write |
 |        | 26    | Empty                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write |
-|        | 27    | 6th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 27    | 6th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 7      | 28    | [Transaction logs](#transaction-log); value of block 5 right before overwriting it, archived here when its sequence counter is `0` and in blocks 29, 30, 32 and 33 for counters 1 to 4 | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
 |        | 29    | See block 28                                                                                                                                                                           | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
 |        | 30    | See block 28                                                                                                                                                                           | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
-|        | 31    | 7th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 31    | 7th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 8      | 32    | See block 28                                                                                                                                                                           | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
 |        | 33    | See block 28                                                                                                                                                                           | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
 |        | 34    | Expiration date, encoding unknown; always `00000000FFFFFFFF0000000000FF00FF` on top up cards                                                                                           | `00000000FFFFFFFF0000000000FF00FF` | Value block          |
-|        | 35    | 8th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | *Trailer*            |
+|        | 35    | 8th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 |        |       |                                                                                                                                                                                        |                                    |                      |
 
 Blocks 8, 9 and 34 are value blocks: a 32-bit integer, its bitwise complement, then the integer again, with value block access conditions (Key A can read, decrement, restore and transfer, Key B can also write and increment).
@@ -141,23 +141,23 @@ Sectors 38 and 39 still have the factory default keys and access conditions (`FF
 | 0      | 0                                      | [00-06] RFID's UID (7 bytes, so no BCC)<br>[07] SAK (`18` for MIFARE Classic 4K)<br>[08-09] ATQA (`0200`)<br>[10-15] manufacturer data; [15] is most likely the last two digits of the manufacturing year | `..,,..,,..,,..1802008100000023..` | Read-only                     |
 |        | 1                                      | [Card type](#card-type)                                                                                                                                                                                   | `..,,..000000000000000000000000,,` | No restrictions               |
 |        | 2                                      | [Card ID](#card-id)                                                                                                                                                                                       | `4354..,,..00000000000000000000..` | Only Key B can write          |
-|        | 3                                      | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                                   | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
-| 1      | 4                                      | *Appears* to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
+|        | 3                                      | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                                   | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 1      | 4                                      | _Appears_ to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
 |        | 5                                      | Latest [transaction log](#transaction-log) entry                                                                                                                                                          | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
-|        | 6                                      | *Appears* to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
-|        | 7                                      | 1st sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
+|        | 6                                      | _Appears_ to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
+|        | 7                                      | 1st sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
 | 2      | 8                                      | [Balance](#balance)                                                                                                                                                                                       | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
 |        | 9                                      | Always has the same value as block 8                                                                                                                                                                      | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
 |        | 10                                     | [Journey summary](#journey-summary-block-10), empty on a new card                                                                                                                                         | `..,,..,,..,,..0D..,,..0000..00..` | No restrictions               |
-|        | 11                                     | 2nd sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
+|        | 11                                     | 2nd sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
 | 3-6    | 12, 16, 20, 24                         | Empty on top up cards                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
 |        | 13-14, 17-18, 21-22, 25-26             | Empty on top up cards                                                                                                                                                                                     | `00000000000000000000000000000000` | No restrictions               |
-|        | 15, 19, 23, 27                         | Trailer blocks of sectors 3-6                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
+|        | 15, 19, 23, 27                         | Trailer blocks of sectors 3-6                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
 | 7      | 28-30                                  | [Transaction log](#transaction-log) archive slots for sequence counters 0, 1 and 2                                                                                                                        | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
-|        | 31                                     | 7th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
+|        | 31                                     | 7th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
 | 8      | 32-33                                  | [Transaction log](#transaction-log) archive slots for sequence counters 3 and 4                                                                                                                           | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
 |        | 34                                     | Always empty                                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
-|        | 35                                     | 8th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | *Trailer*                     |
+|        | 35                                     | 8th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
 | 9      | 36-38                                  | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | No restrictions               |
 | 10, 15 | 40-42, 60-62                           | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
 | 11-14  | data blocks 44-46, 48-50, 52-54, 56-58 | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can read and write |
@@ -184,7 +184,7 @@ Two bytes, read as 16 bits:
 
 `34 4E` = `0011010 0010 01110` = 2026-02-14.
 
-See [src/date.ts](./src/date.ts) and [test/date.test.ts](./test/date.test.ts).
+See implementation for [JS](lib/javascript/src/date.ts).
 
 ### Card ID
 
@@ -193,7 +193,7 @@ See [src/date.ts](./src/date.ts) and [test/date.test.ts](./test/date.test.ts).
 - [05-14] zero
 - [15] XOR of all previous bytes
 
-See [src/id.ts](./src/id.ts) and [test/id.test.ts](./test/id.test.ts).
+See implementation for [JS](lib/javascript/src/id.ts).
 
 ### Card type
 
@@ -212,7 +212,7 @@ Block 1 says which product a card is:
 
 Top up cards pay for each journey out of a [balance](#balance); personal cards use a [subscription](#subscription) and never change balance.
 
-See [src/type.ts](./src/type.ts) and [test/type.test.ts](./test/type.test.ts).
+See implementation for [JS](lib/javascript/src/type.ts).
 
 ### Balance
 
@@ -225,7 +225,7 @@ Blocks 8 and 9, identical, in the MIFARE value block format. €1.00 = 1000 unit
 
 €5.00 is `8813000077ECFFFF8813000002FD02FD`. Personal unlimited cards always hold zero: `00000000FFFFFFFF0000000002FD02FD`.
 
-See [src/balance.ts](./src/balance.ts) and [test/balance.test.ts](./test/balance.test.ts).
+See implementation for [JS](lib/javascript/src/balance.ts).
 
 ### Transaction log
 
@@ -247,7 +247,7 @@ A journey subtracts the amount from the balance, a top up adds it. A journey wit
 
 Known directions: on the tram `01` runs south to Mago de Oz and `02` north to Avenida de la Academia; on bus 31 `02` runs to Puerto Venecia and `01` to Aljafería; on bus 22 `02` runs to Las Fuentes and `01` to Bombarda. Other lines: see [directions](#directions).
 
-See [src/transaction.ts](./src/transaction.ts) and [test/transaction.test.ts](./test/transaction.test.ts).
+See implementation for [JS](lib/javascript/src/transaction.ts).
 
 ### Journey summary (block 10)
 
@@ -278,7 +278,7 @@ A free transfer onto the tram 33 minutes after a paid ride on bus 31, block 5 ab
     ?1 = byte 01             ?9 = byte 09                  xr = XOR
 ```
 
-See [src/block10.ts](./src/block10.ts) and [test/block10.test.ts](./test/block10.test.ts).
+See implementation for [JS](lib/javascript/src/journey-summary.ts).
 
 ### Subscription metadata
 
@@ -292,7 +292,7 @@ Blocks 12 and 16 on personal cards, one product per sector. Still [work in progr
 - [10-14] Unknown, appears to always be `0021000000`
 - [15] XOR of all previous bytes
 
-See [src/subscription-metadata.ts](./src/subscription-metadata.ts) and [test/subscription-metadata.test.ts](./test/subscription-metadata.test.ts).
+See implementation for [JS](lib/javascript/src/subscription-metadata.ts).
 
 ### Subscription
 
@@ -305,7 +305,7 @@ Blocks 13 and 14 (a copy) for the product of block 12, blocks 17 and 18 for the 
 - [10-11] [Date](#date) of the last usage, [12] hour, [13] minute, [14] second
 - [15] XOR of all previous bytes
 
-See [src/subscription.ts](./src/subscription.ts) and [test/subscription.test.ts](./test/subscription.test.ts).
+See implementation for [JS](lib/javascript/src/subscription.ts).
 
 ## Unconfirmed
 
@@ -361,26 +361,16 @@ The personal card carries two products: sector 3 a 2 day product (id `06`) bough
 
 ### JavaScript/TypeScript
 
-The JavaScript/TypeScript/Bun library is published in [npm](https://www.npmjs.com/package/zgz-transport):
+[lib/javascript](lib/javascript) decodes and encodes every structure above and whole dumps of either card (`decodeCard`). Published on [npm](https://www.npmjs.com/package/zgz-transport) as `zgz-transport` and on [JSR](https://jsr.io/@hloth/zgz-transport) as `@hloth/zgz-transport`:
 
 ```bash
 bun add zgz-transport
 # npm install zgz-transport
-# yarn install zgz-transport
-# pnpm install zgz-transport
+# pnpm add zgz-transport
+# bunx jsr add @hloth/zgz-transport
 ```
 
-And [JSR](https://jsr.io/@hloth/zgz-transport):
-
-```bash
-bunx jsr add @hloth/zgz-transport
-# npx jsr add @hloth/zgz-transport
-# deno add jsr:@hloth/zgz-transport
-# yarn add jsr:@hloth/zgz-transport
-# pnpm add jsr:@hloth/zgz-transport
-```
-
-Use [index.ts](src/index.ts) as a starting point.
+Start from [index.ts](lib/javascript/src/index.ts).
 
 ## Contributing
 

@@ -1,145 +1,87 @@
+import {
+	assertInRange,
+	assertLength,
+	BLOCK_SIZE,
+	readUint16,
+	writeUint16,
+} from "./bytes";
 import { decodeDate, encodeDate, type Date16Bit } from "./date";
+import { decodeStop, encodeStop, type Stop } from "./stop";
 import { decodeTime, encodeTime, type Time } from "./time";
+import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type";
 
-const transactionHeaders = [0x020002, 0x020000, 0x0a0200, 0x0a0100];
+export type Direction = 1 | 2;
 
-export type Transaction = {
-	header: number;
-	/** Always 0 on personal unlimited cards */
-	fareId: number;
-	/** Starts from 1 */
-	consecutivePaymentsCounter: number;
-	/** 2 bytes */
-	unknownVar1: Uint8Array<ArrayBuffer>;
-	line: number;
-	/** Always either 1 or 2 */
-	direction: number;
-	/** 1 byte */
-	unknownVar2: Uint8Array<ArrayBuffer>;
+const TOP_UP_KIND = 8;
+
+type TransactionBase = {
+	cardType: CardTypeName;
+	networkFlag: number;
+	amount: number;
+	consecutivePayments: number;
+	stop: Stop;
+	route: number;
+	runCounter: number;
 	createdAt: Date16Bit & Time;
-	/** Starts with 0 and increments with each transaction until 4 (inclusive), after that loops back to 0 */
 	sequence: number;
 };
 
-/**
- * Encodes transaction to a 16-byte record
- * @param transaction An object with the transaction fields
- * @returns The 16-byte transaction record
- */
-export function encodeTransaction({
-	header,
-	fareId,
-	consecutivePaymentsCounter,
-	unknownVar1,
-	line,
-	direction,
-	unknownVar2,
-	createdAt: { year, month, day, hour, minute, second },
-	sequence,
-}: Transaction): Uint8Array {
-	if (!transactionHeaders.includes(header)) {
-		throw new Error(
-			`Unknown transaction record marker: ${header.toString(16)} (bytes 00-02)`,
-		);
-	}
-	if (
-		consecutivePaymentsCounter === undefined ||
-		consecutivePaymentsCounter < 1
-	) {
-		throw new Error(
-			`Invalid consecutive payments counter: ${consecutivePaymentsCounter} (byte 04)`,
-		);
-	}
-	if (direction !== 1 && direction !== 2) {
-		throw new Error(`Invalid transaction direction: ${direction} (byte 08)`);
-	}
-	const date = encodeDate({ year, month, day });
-	const time = encodeTime({ hour, minute, second });
-	if (sequence < 0 || sequence > 4) {
-		throw new Error(
-			`Invalid transaction sequence number: ${sequence} (byte 15)`,
-		);
-	}
-	const transaction = new Uint8Array(16);
-	transaction[0] = (header >> 16) & 0xff;
-	transaction[1] = (header >> 8) & 0xff;
-	transaction[2] = header & 0xff;
-	transaction[3] = fareId;
-	transaction[4] = consecutivePaymentsCounter;
-	transaction.set(unknownVar1, 5);
-	transaction[7] = line;
-	transaction[8] = direction;
-	transaction.set(unknownVar2, 9);
-	transaction.set(date, 10);
-	transaction.set(time, 12);
-	transaction[15] = sequence;
-	return transaction;
+export type Journey = TransactionBase & {
+	kind: "journey";
+	direction: Direction;
+};
+export type TopUp = TransactionBase & { kind: "topUp" };
+export type Transaction = Journey | TopUp;
+
+export const isFreeTransfer = (transaction: Transaction) =>
+	transaction.kind === "journey" && transaction.amount === 0;
+
+export function decodeTransaction(block: Uint8Array): Transaction {
+	assertLength(block, BLOCK_SIZE, "transaction block");
+	const route = block[7]!;
+	const base: TransactionBase = {
+		cardType: cardTypeFromByte(block[0]!),
+		networkFlag: block[1]!,
+		amount: readUint16(block, 2),
+		consecutivePayments: block[4]!,
+		stop: decodeStop(block.subarray(5, 7), route),
+		route,
+		runCounter: block[9]!,
+		createdAt: {
+			...decodeDate(block.subarray(10, 12)),
+			...decodeTime(block.subarray(12, 15)),
+		},
+		sequence: block[15]!,
+	};
+	const kind = block[8]!;
+	if (kind === TOP_UP_KIND) return { ...base, kind: "topUp" };
+	if (kind === 1 || kind === 2)
+		return { ...base, kind: "journey", direction: kind };
+	throw new Error(`transaction kind byte must be 1, 2 or 8, got ${kind}`);
 }
 
-/**
- * Decodes transaction from a 16-byte record
- * @param transaction The 16-byte transaction record
- * @returns An object with the decoded transaction fields
- */
-export function decodeTransaction(transaction: Uint8Array): Transaction {
-	if (transaction.length !== 16) {
-		throw new Error(`Invalid transaction length: expected 16 bytes`);
-	}
-	const header = transaction
-		.slice(0, 3)
-		.reduce((acc, byte) => (acc << 8) | byte, 0);
-	if (!transactionHeaders.includes(header)) {
-		throw new Error(
-			`Unknown transaction record marker: ${header.toString(16)} (bytes 00-02) [${transaction.toHex()}]`,
-		);
-	}
-	const fareId = transaction[3];
-	if (fareId === undefined) {
-		throw new Error(`Invalid fare id: ${fareId} (byte 03)`);
-	}
-	const consecutivePaymentsCounter = transaction.slice(4, 5)[0];
-	if (
-		consecutivePaymentsCounter === undefined ||
-		consecutivePaymentsCounter < 1
-	) {
-		throw new Error(
-			`Invalid consecutive payments counter: ${consecutivePaymentsCounter} (byte 04)`,
-		);
-	}
-	const unknownVar1 = transaction.slice(5, 7);
-	const line = transaction[7];
-	if (line === undefined) {
-		throw new Error(`Invalid transaction line number: ${line} (byte 07)`);
-	}
-	const direction = transaction[8];
-	if (direction === undefined || (direction !== 1 && direction !== 2)) {
-		throw new Error(`Invalid transaction direction: ${direction} (byte 08)`);
-	}
-	const unknownVar2 = transaction.slice(9, 10);
-	const date = transaction.slice(10, 12);
-	const { year, month, day } = decodeDate(date);
-	const time = transaction.slice(12, 15);
-	const { hour, minute, second } = decodeTime(time);
-	const seq = transaction[15];
-	if (seq === undefined || seq < 0 || seq > 4) {
-		throw new Error(`Invalid transaction sequence number: ${seq} (byte 15)`);
-	}
-	return {
-		header,
-		fareId,
-		consecutivePaymentsCounter,
-		unknownVar1,
-		line,
-		direction,
-		unknownVar2,
-		createdAt: {
-			year,
-			month,
-			day,
-			hour,
-			minute,
-			second,
-		},
-		sequence: seq,
-	};
+export function encodeTransaction(transaction: Transaction): Uint8Array {
+	assertInRange("amount", transaction.amount, 0, 0xffff);
+	assertInRange(
+		"consecutive payments",
+		transaction.consecutivePayments,
+		0,
+		0xff,
+	);
+	assertInRange("route", transaction.route, 0, 0xff);
+	assertInRange("run counter", transaction.runCounter, 0, 0xff);
+	assertInRange("sequence", transaction.sequence, 0, 0xff);
+	const block = new Uint8Array(BLOCK_SIZE);
+	block[0] = cardTypeByte(transaction.cardType);
+	block[1] = transaction.networkFlag;
+	writeUint16(block, 2, transaction.amount);
+	block[4] = transaction.consecutivePayments;
+	block.set(encodeStop(transaction.stop), 5);
+	block[7] = transaction.route;
+	block[8] = transaction.kind === "topUp" ? TOP_UP_KIND : transaction.direction;
+	block[9] = transaction.runCounter;
+	block.set(encodeDate(transaction.createdAt), 10);
+	block.set(encodeTime(transaction.createdAt), 12);
+	block[15] = transaction.sequence;
+	return block;
 }
