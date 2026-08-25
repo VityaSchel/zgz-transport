@@ -1,3 +1,10 @@
+/**
+ * Decoders and encoders for the Zaragoza and Aragon transport cards, Avanza Tarjeta Bus and
+ * Lazo, following the card spec at https://git.hloth.dev/hloth/zgz-transport.
+ *
+ * {@link decodeCard} reads a whole dump; every block structure also has its own pair of functions.
+ * @module
+ */
 export { decodeBalance, encodeBalance, UNITS_PER_EURO } from "./balance";
 export { decodeCard, type Card, type Chip, type Product } from "./card";
 export { decodeDate, encodeDate, type Date16Bit } from "./date";
@@ -36,6 +43,7 @@ export {
 	type Journey,
 	type TopUp,
 	type Transaction,
+	type TransactionBase,
 } from "./transaction";
 export {
 	CardType,

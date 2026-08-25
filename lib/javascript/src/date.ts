@@ -1,11 +1,19 @@
 import { assertInRange, assertLength, readUint16, writeUint16 } from "./bytes";
 
+/** A calendar date as packed into two bytes. */
 export type Date16Bit = {
+	/** `2000` to `2127`. */
 	year: number;
+	/** `1` to `12`. */
 	month: number;
+	/** `1` to `31`. */
 	day: number;
 };
 
+/**
+ * Decodes a date from 7 bits of year since 2000, 4 bits of month and 5 bits of day.
+ * @param bytes Two bytes, big-endian.
+ */
 export function decodeDate(bytes: Uint8Array): Date16Bit {
 	assertLength(bytes, 2, "date");
 	const packed = readUint16(bytes, 0);
@@ -19,6 +27,10 @@ export function decodeDate(bytes: Uint8Array): Date16Bit {
 	return date;
 }
 
+/**
+ * Encodes a date into two bytes.
+ * @returns Two bytes, big-endian.
+ */
 export function encodeDate({ year, month, day }: Date16Bit): Uint8Array {
 	assertInRange("year", year, 2000, 2127);
 	assertInRange("month", month, 1, 12);

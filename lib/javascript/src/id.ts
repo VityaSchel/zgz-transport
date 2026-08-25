@@ -7,6 +7,11 @@ import {
 
 const ID_FORMAT = /^[A-Z]{2}[0-9]{6,26}$/;
 
+/**
+ * Encodes the printed card id into block 2.
+ * @param id Two capital letters followed by 6 to 26 digits, e.g. `BE322743`.
+ * @returns The 16-byte block with its checksum.
+ */
 export function encodeId(id: string): Uint8Array {
 	if (!ID_FORMAT.test(id)) {
 		throw new Error(
@@ -20,6 +25,11 @@ export function encodeId(id: string): Uint8Array {
 	return withChecksum(block);
 }
 
+/**
+ * Decodes the printed card id from block 2.
+ * @param block The 16-byte block.
+ * @returns Prefix and digits, e.g. `CT430486`.
+ */
 export function decodeId(block: Uint8Array): string {
 	assertLength(block, BLOCK_SIZE, "id block");
 	assertChecksum(block);

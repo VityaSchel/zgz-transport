@@ -10,18 +10,28 @@ import { decodeDate, encodeDate, type Date16Bit } from "./date";
 import type { Direction } from "./transaction";
 import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type";
 
+/** Block 10 of a top up card, rewritten on every journey and untouched by top ups. */
 export type JourneySummary = {
+	/** The journey before the current one; absent on the first ever journey. */
 	previous?: { route: number; direction: Direction };
+	/** When the last paid journey happened, also after a free transfer. */
 	lastPaidAt: Date16Bit & { hour: number; minute: number };
+	/** Same as byte 4 of the current transaction. */
 	consecutivePayments: number;
+	/** Product of the card. */
 	cardType: CardTypeName;
+	/** Whether the current journey was a free transfer. */
 	free: boolean;
+	/** Route id of the current journey. */
 	route: number;
+	/** Direction of the current journey. */
 	direction: Direction;
+	/** `0x63` after a paid journey, `0x62` after a free transfer. */
 	transfersLeft: number;
 };
 
-export const PERSONAL_JOURNEY_SUMMARY = Uint8Array.fromHex(
+/** The constant block 10 of personal cards. */
+export const PERSONAL_JOURNEY_SUMMARY: Uint8Array = Uint8Array.fromHex(
 	"000000000000000A000000000000000A",
 );
 
@@ -31,6 +41,11 @@ function direction(byte: number, name: string): Direction {
 	return byte;
 }
 
+/**
+ * Decodes block 10 of a top up card.
+ * @param block The 16-byte block.
+ * @throws On the personal card constant or any other invalid content.
+ */
 export function decodeJourneySummary(block: Uint8Array): JourneySummary {
 	assertLength(block, BLOCK_SIZE, "journey summary block");
 	assertChecksum(block);
@@ -62,6 +77,7 @@ export function decodeJourneySummary(block: Uint8Array): JourneySummary {
 	};
 }
 
+/** Encodes a journey summary into block 10. */
 export function encodeJourneySummary(summary: JourneySummary): Uint8Array {
 	assertInRange("hour", summary.lastPaidAt.hour, 0, 23);
 	assertInRange("minute", summary.lastPaidAt.minute, 0, 59);

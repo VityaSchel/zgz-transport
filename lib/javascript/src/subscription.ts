@@ -8,14 +8,24 @@ import {
 import { decodeDate, encodeDate, type Date16Bit } from "./date";
 import { decodeTime, encodeTime, type Time } from "./time";
 
+/** Block 13 or 17 of a personal card, copied in 14 and 18. */
 export type Subscription = {
+	/** First day of validity. */
 	startsAt: Date16Bit;
+	/** Last day of validity. */
 	endsAt: Date16Bit;
+	/** Bytes 4 and 5, always `0000` so far. */
 	unknown1: Uint8Array;
+	/** Bytes 6 to 9. */
 	unknown2: Uint8Array;
+	/** Last use the pass recorded; absent while unused. */
 	lastUsedAt?: Date16Bit & Time;
 };
 
+/**
+ * Decodes a subscription block.
+ * @param block The 16-byte block.
+ */
 export function decodeSubscription(block: Uint8Array): Subscription {
 	assertLength(block, BLOCK_SIZE, "subscription block");
 	assertChecksum(block);
@@ -34,6 +44,7 @@ export function decodeSubscription(block: Uint8Array): Subscription {
 	};
 }
 
+/** Encodes a subscription into a 16-byte block. */
 export function encodeSubscription(subscription: Subscription): Uint8Array {
 	assertLength(subscription.unknown1, 2, "unknown1");
 	assertLength(subscription.unknown2, 4, "unknown2");

@@ -10,32 +10,52 @@ import { decodeStop, encodeStop, type Stop } from "./stop";
 import { decodeTime, encodeTime, type Time } from "./time";
 import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type";
 
+/** Direction of a journey along its route. */
 export type Direction = 1 | 2;
 
 const TOP_UP_KIND = 8;
 
-type TransactionBase = {
+/** Fields shared by journeys and top ups. */
+export type TransactionBase = {
+	/** Product of the card that made the transaction. */
 	cardType: CardTypeName;
+	/** Byte 1: `0` on top up cards, `1` or `2` on personal cards. */
 	networkFlag: number;
+	/** Money moved in {@link UNITS_PER_EURO} units, `0` on free transfers. */
 	amount: number;
+	/** Payments of this card at one terminal in a row, counting from `1`; `0` on top ups. */
 	consecutivePayments: number;
+	/** Where the transaction happened. */
 	stop: Stop;
+	/** Route id, see {@link routeName}; `0` on top ups made off board. */
 	route: number;
+	/** Byte 9, on buses most likely the ordinal of the vehicle run that day. */
 	runCounter: number;
+	/** When the transaction was written. */
 	createdAt: Date16Bit & Time;
+	/** `0` to `4`, selects the archive block, see {@link archiveBlock}. */
 	sequence: number;
 };
 
+/** A ride, paid or a free transfer. */
 export type Journey = TransactionBase & {
 	kind: "journey";
 	direction: Direction;
 };
+/** Money added to the balance. */
 export type TopUp = TransactionBase & { kind: "topUp" };
+/** One 16-byte record of the transaction log. */
 export type Transaction = Journey | TopUp;
 
+/** Whether a transaction is a journey that cost nothing. */
 export const isFreeTransfer = (transaction: Transaction) =>
 	transaction.kind === "journey" && transaction.amount === 0;
 
+/**
+ * Decodes a transaction record.
+ * @param block The 16-byte block.
+ * @throws When byte 8 is not a direction or a top up.
+ */
 export function decodeTransaction(block: Uint8Array): Transaction {
 	assertLength(block, BLOCK_SIZE, "transaction block");
 	const route = block[7]!;
@@ -60,6 +80,7 @@ export function decodeTransaction(block: Uint8Array): Transaction {
 	throw new Error(`transaction kind byte must be 1, 2 or 8, got ${kind}`);
 }
 
+/** Encodes a transaction into a 16-byte record. */
 export function encodeTransaction(transaction: Transaction): Uint8Array {
 	assertInRange("amount", transaction.amount, 0, 0xffff);
 	assertInRange(

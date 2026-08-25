@@ -9,15 +9,26 @@ import {
 } from "./bytes";
 import { decodeDate, encodeDate, type Date16Bit } from "./date";
 
+/** Block 12 or 16 of a personal card. */
 export type SubscriptionMetadata = {
+	/** Byte 0, tells the products of a card apart. */
 	productId: number;
+	/** Byte 1, always `1` so far. */
 	unknown1: number;
+	/** When the product was bought. */
 	purchasedAt: Date16Bit;
+	/** Bytes 4 to 7, always `00210000` so far. */
 	unknown2: Uint8Array;
+	/** How many days the product is valid for. */
 	validityDays: number;
+	/** Bytes 10 to 14, always `0021000000` so far. */
 	unknown3: Uint8Array;
 };
 
+/**
+ * Decodes a subscription metadata block.
+ * @param block The 16-byte block.
+ */
 export function decodeSubscriptionMetadata(
 	block: Uint8Array,
 ): SubscriptionMetadata {
@@ -33,6 +44,7 @@ export function decodeSubscriptionMetadata(
 	};
 }
 
+/** Encodes subscription metadata into a 16-byte block. */
 export function encodeSubscriptionMetadata(
 	metadata: SubscriptionMetadata,
 ): Uint8Array {

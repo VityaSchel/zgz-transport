@@ -1,3 +1,4 @@
+/** Keys of one sector as upper case hex; a missing key is not known. */
 export type SectorKeys = { a?: string; b?: string };
 
 const AVANZA_OPERATOR: SectorKeys = { a: "04000C0F0903", b: "0B02070A0409" };
@@ -13,11 +14,20 @@ const LAZO_OWN: Record<number, SectorKeys> = {
 	37: { a: "455D732C385F", b: "2426217B3B3B" },
 };
 
+/**
+ * Keys of an Avanza Tarjeta Bus sector.
+ * @param sector `0` to `15`.
+ * @param personal Whether the card is a personal one, which keeps the operator keys on every sector.
+ */
 export function avanzaKeys(sector: number, personal = false): SectorKeys {
 	if (sector <= 8 || personal) return AVANZA_OPERATOR;
 	return { a: "A0A1A2A3A4A5", b: "B0B1B2B3B4B5" };
 }
 
+/**
+ * Keys of a Lazo card sector.
+ * @param sector `0` to `39`.
+ */
 export function lazoKeys(sector: number): SectorKeys {
 	if (sector < 32) return LAZO_SHARED;
 	return LAZO_OWN[sector] ?? FACTORY;

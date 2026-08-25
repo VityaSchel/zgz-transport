@@ -1,6 +1,10 @@
 import { assertInRange, assertLength, readUint16, writeUint16 } from "./bytes";
 import { TRAM_ROUTE } from "./route";
 
+/**
+ * Where a transaction happened. Urban bus stops carry an internal stop id, tram stops
+ * their stop number and any other operator an id of its own.
+ */
 export type Stop =
 	| { network: "urban"; id: number }
 	| { network: "tram"; stop: number }
@@ -8,6 +12,11 @@ export type Stop =
 
 const URBAN_FLAG = 0x8000;
 
+/**
+ * Decodes bytes 5 and 6 of a transaction.
+ * @param bytes The two bytes.
+ * @param route Route id of the transaction, needed to tell the tram from other operators.
+ */
 export function decodeStop(bytes: Uint8Array, route: number): Stop {
 	assertLength(bytes, 2, "stop");
 	const value = readUint16(bytes, 0);
@@ -16,6 +25,7 @@ export function decodeStop(bytes: Uint8Array, route: number): Stop {
 	return { network: "other", id: value };
 }
 
+/** Encodes a stop into two bytes. */
 export function encodeStop(stop: Stop): Uint8Array {
 	const bytes = new Uint8Array(2);
 	switch (stop.network) {
