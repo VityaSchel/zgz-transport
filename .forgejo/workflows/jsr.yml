@@ -4,27 +4,80 @@ on:
     types: [published]
   workflow_dispatch:
 
+concurrency:
+  group: zgz-transport-jsr-${{ forgejo.ref }}
+  cancel-in-progress: false
+
 jobs:
   publish:
-    runs-on: node-latest
+    runs-on: ["publish", "hetzner"]
+    timeout-minutes: 15
 
     permissions:
       contents: read
-      id-token: write
 
     defaults:
       run:
-        working-directory: lib/javascript
+        shell: >-
+          /usr/bin/env
+          -u GITHUB_TOKEN -u FORGEJO_TOKEN
+          -u ACTIONS_RUNTIME_TOKEN
+          -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL
+          -u ACTIONS_CACHE_URL -u ACTIONS_RUNTIME_URL -u ACTIONS_RESULTS_URL
+          bash --noprofile --norc -e -o pipefail {0}
+
+    env:
+      WORKSPACE: /opt/zgz-transport-jsr
+      PACKAGE_DIR: lib/javascript
+      BUN_VERSION: "1.4.0"
+      BUN_SHA256: "2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452"
+      JSR_CLI_VERSION: "0.14.3"
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - name: Verify CI environment
+        run: |
+          leaked=$(env | grep -iE '(TOKEN|SECRET|PASSWORD|CREDENTIAL|KEY)=.' || true)
+          [ -z "$leaked" ] || { echo "FATAL: privileged credential reachable by build code:"; echo "$leaked" | sed 's/=.*/=<redacted>/'; exit 1; }
+
+      - name: Check out
+        run: |
+          : "${WORKSPACE:?}"
+          rm -rf "$WORKSPACE"
+          mkdir -p "$WORKSPACE"
+          cd "$WORKSPACE"
+
+          git init -q .
+          git remote add origin "$FORGEJO_SERVER_URL/$FORGEJO_REPOSITORY.git"
+          git fetch -q --depth 1 origin "$FORGEJO_REF"
+          git checkout -q FETCH_HEAD
+          [ -z "$FORGEJO_SHA" ] || [ "$(git rev-parse HEAD)" = "$FORGEJO_SHA" ] \
+            || { echo "FATAL: ref moved since the run was queued (want $FORGEJO_SHA, got $(git rev-parse HEAD))"; exit 1; }
+          echo "publishing $FORGEJO_REF at $(git rev-parse HEAD)"
+
+      - name: Install the pinned bun
+        run: |
+          if ! command -v unzip >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -y
+            apt-get install -y --no-install-recommends unzip
+          fi
+          curl -fsSLo /tmp/bun.zip \
+            "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-x64.zip"
+          echo "${BUN_SHA256}  /tmp/bun.zip" | sha256sum -c -
+          unzip -q -o /tmp/bun.zip -d /opt
+          echo "/opt/bun-linux-x64" >> "$GITHUB_PATH"
+          /opt/bun-linux-x64/bun --version
 
       - name: Install dependencies
-        run: bun i --frozen-lockfile
+        run: cd "$WORKSPACE/$PACKAGE_DIR" && bun i --frozen-lockfile
 
       - name: Copy license
-        run: cp ../../LICENSE .
+        run: cd "$WORKSPACE/$PACKAGE_DIR" && cp ../../LICENSE .
 
       - name: Publish package
-        run: bunx --bun jsr publish --token ${{ secrets.JSR_TOKEN }}
+        env:
+          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
+        run: |
+          : "${JSR_TOKEN:?}"
+          cd "$WORKSPACE/$PACKAGE_DIR"
+          bunx --bun "jsr@${JSR_CLI_VERSION}" publish --allow-dirty --token "$JSR_TOKEN"
