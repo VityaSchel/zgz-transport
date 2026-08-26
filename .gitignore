@@ -8,3 +8,5 @@ lib/javascript/test/test.ts
 # No publicly disclosed dumps to test against
 lib/javascript/test/subscription.test.ts
 lib/javascript/test/subscription-metadata.test.ts
+
+lib/rust/target

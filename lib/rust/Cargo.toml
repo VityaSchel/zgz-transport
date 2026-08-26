@@ -1,0 +1,22 @@
+[package]
+name = "zgz-transport"
+version = "1.0.0"
+authors = ["Viktor Shchelochkov <hi@hloth.dev>"]
+edition = "2024"
+rust-version = "1.88"
+description = "Zaragoza and Aragon transport card (Avanza, Lazo) encoder and decoder"
+readme = "README.md"
+homepage = "https://git.hloth.dev/hloth/zgz-transport"
+repository = "https://git.hloth.dev/hloth/zgz-transport"
+license = "MIT"
+keywords = ["mifare", "nfc", "zaragoza", "avanza", "lazo"]
+categories = ["encoding", "parser-implementations", "no-std"]
+
+[dependencies]
+
+[lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }

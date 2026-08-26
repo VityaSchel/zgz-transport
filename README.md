@@ -36,6 +36,7 @@ Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date
 		- [Notes](#notes)
 	- [Implementations](#implementations)
 		- [JavaScript/TypeScript](#javascripttypescript)
+		- [Rust](#rust)
 	- [Contributing](#contributing)
 	- [See also](#see-also)
 	- [Acknowledgements](#acknowledgements)
@@ -184,7 +185,7 @@ Two bytes, read as 16 bits:
 
 `34 4E` = `0011010 0010 01110` = 2026-02-14.
 
-See implementation for [JS](lib/javascript/src/date.ts).
+See implementation for [JS](lib/javascript/src/date.ts), [Rust](lib/rust/src/date.rs).
 
 ### Card ID
 
@@ -193,7 +194,7 @@ See implementation for [JS](lib/javascript/src/date.ts).
 - [05-14] zero
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/id.ts).
+See implementation for [JS](lib/javascript/src/id.ts), [Rust](lib/rust/src/id.rs).
 
 ### Card type
 
@@ -212,7 +213,7 @@ Block 1 says which product a card is:
 
 Top up cards pay for each journey out of a [balance](#balance); personal cards use a [subscription](#subscription) and never change balance.
 
-See implementation for [JS](lib/javascript/src/type.ts).
+See implementation for [JS](lib/javascript/src/type.ts), [Rust](lib/rust/src/card_type.rs).
 
 ### Balance
 
@@ -225,7 +226,7 @@ Blocks 8 and 9, identical, in the MIFARE value block format. €1.00 = 1000 unit
 
 €5.00 is `8813000077ECFFFF8813000002FD02FD`. Personal unlimited cards always hold zero: `00000000FFFFFFFF0000000002FD02FD`.
 
-See implementation for [JS](lib/javascript/src/balance.ts).
+See implementation for [JS](lib/javascript/src/balance.ts), [Rust](lib/rust/src/balance.rs).
 
 ### Transaction log
 
@@ -247,7 +248,7 @@ A journey subtracts the amount from the balance, a top up adds it. A journey wit
 
 Known directions: on the tram `01` runs south to Mago de Oz and `02` north to Avenida de la Academia; on bus 31 `02` runs to Puerto Venecia and `01` to Aljafería; on bus 22 `02` runs to Las Fuentes and `01` to Bombarda. Other lines: see [directions](#directions).
 
-See implementation for [JS](lib/javascript/src/transaction.ts).
+See implementation for [JS](lib/javascript/src/transaction.ts), [Rust](lib/rust/src/transaction.rs).
 
 ### Journey summary (block 10)
 
@@ -278,7 +279,7 @@ A free transfer onto the tram 33 minutes after a paid ride on bus 31, block 5 ab
     ?1 = byte 01             ?9 = byte 09                  xr = XOR
 ```
 
-See implementation for [JS](lib/javascript/src/journey-summary.ts).
+See implementation for [JS](lib/javascript/src/journey-summary.ts), [Rust](lib/rust/src/journey_summary.rs).
 
 ### Subscription metadata
 
@@ -292,7 +293,7 @@ Blocks 12 and 16 on personal cards, one product per sector. Still [work in progr
 - [10-14] Unknown, appears to always be `0021000000`
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/subscription-metadata.ts).
+See implementation for [JS](lib/javascript/src/subscription-metadata.ts), [Rust](lib/rust/src/subscription_metadata.rs).
 
 ### Subscription
 
@@ -305,7 +306,7 @@ Blocks 13 and 14 (a copy) for the product of block 12, blocks 17 and 18 for the 
 - [10-11] [Date](#date) of the last usage, [12] hour, [13] minute, [14] second
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/subscription.ts).
+See implementation for [JS](lib/javascript/src/subscription.ts), [Rust](lib/rust/src/subscription.rs).
 
 ## Unconfirmed
 
@@ -371,6 +372,16 @@ bun add zgz-transport
 ```
 
 Start from [index.ts](lib/javascript/src/index.ts).
+
+### Rust
+
+[lib/rust](lib/rust) is the same library in Rust, `no_std` with `alloc`. Published on [crates.io](https://crates.io/crates/zgz-transport) as `zgz-transport`:
+
+```bash
+cargo add zgz-transport
+```
+
+Start from [lib.rs](lib/rust/src/lib.rs).
 
 ## Contributing
 
