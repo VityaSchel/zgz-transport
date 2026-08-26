@@ -1,15 +1,18 @@
-import { decodeBalance } from "./balance";
-import { BLOCK_SIZE, isZero } from "./bytes";
-import { decodeId } from "./id";
-import { decodeJourneySummary, type JourneySummary } from "./journey-summary";
-import { decodeTransactionLog } from "./log";
-import { decodeSubscription, type Subscription } from "./subscription";
+import { decodeBalance } from "./balance.ts";
+import { BLOCK_SIZE, isZero } from "./bytes.ts";
+import { decodeId } from "./id.ts";
+import {
+	decodeJourneySummary,
+	type JourneySummary,
+} from "./journey-summary.ts";
+import { decodeTransactionLog } from "./log.ts";
+import { decodeSubscription, type Subscription } from "./subscription.ts";
 import {
 	decodeSubscriptionMetadata,
 	type SubscriptionMetadata,
-} from "./subscription-metadata";
-import type { Transaction } from "./transaction";
-import { decodeCardType, type CardTypeName } from "./type";
+} from "./subscription-metadata.ts";
+import type { Transaction } from "./transaction.ts";
+import { decodeCardType, type CardTypeName } from "./type.ts";
 
 /** MIFARE Classic variant, told apart by the SAK byte in block 0. */
 export type Chip = "1K" | "4K";

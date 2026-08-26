@@ -4,11 +4,11 @@ import {
 	BLOCK_SIZE,
 	readUint16,
 	writeUint16,
-} from "./bytes";
-import { decodeDate, encodeDate, type Date16Bit } from "./date";
-import { decodeStop, encodeStop, type Stop } from "./stop";
-import { decodeTime, encodeTime, type Time } from "./time";
-import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type";
+} from "./bytes.ts";
+import { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
+import { decodeStop, encodeStop, type Stop } from "./stop.ts";
+import { decodeTime, encodeTime, type Time } from "./time.ts";
+import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type.ts";
 
 /** Direction of a journey along its route. */
 export type Direction = 1 | 2;

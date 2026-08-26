@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { decodeStop, encodeStop, type Stop } from "../src/stop";
+import { decodeStop, encodeStop, type Stop } from "../src/stop.ts";
 
 const cases: { encoded: string; route: number; stop: Stop }[] = [
 	{ encoded: "81DB", route: 31, stop: { network: "urban", id: 475 } },

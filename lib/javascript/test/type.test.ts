@@ -5,7 +5,7 @@ import {
 	decodeCardType,
 	encodeCardType,
 	type CardTypeName,
-} from "../src/type";
+} from "../src/type.ts";
 
 const cases: { type: CardTypeName; encoded: string }[] = [
 	{ type: "AvanzaTopUp", encoded: "02699F000000000000000000000000F4" },

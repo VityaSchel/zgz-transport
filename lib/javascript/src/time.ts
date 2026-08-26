@@ -1,4 +1,4 @@
-import { assertInRange, assertLength } from "./bytes";
+import { assertInRange, assertLength } from "./bytes.ts";
 
 /** A time of day. */
 export type Time = {

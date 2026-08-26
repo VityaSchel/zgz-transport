@@ -5,10 +5,10 @@ import {
 	BLOCK_SIZE,
 	isZero,
 	withChecksum,
-} from "./bytes";
-import { decodeDate, encodeDate, type Date16Bit } from "./date";
-import type { Direction } from "./transaction";
-import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type";
+} from "./bytes.ts";
+import { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
+import type { Direction } from "./transaction.ts";
+import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type.ts";
 
 /** Block 10 of a top up card, rewritten on every journey and untouched by top ups. */
 export type JourneySummary = {

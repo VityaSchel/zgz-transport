@@ -1,6 +1,6 @@
 import { expect, it } from "bun:test";
-import { archiveBlock, decodeTransactionLog } from "../src/log";
-import { transactions } from "./fixtures/transactions";
+import { archiveBlock, decodeTransactionLog } from "../src/log.ts";
+import { transactions } from "./fixtures/transactions.ts";
 
 const record = (index: number) =>
 	Uint8Array.fromHex(transactions[index]!.encoded);

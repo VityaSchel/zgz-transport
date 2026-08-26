@@ -4,7 +4,7 @@ import {
 	BLOCK_SIZE,
 	readUint32LE,
 	writeUint32LE,
-} from "./bytes";
+} from "./bytes.ts";
 
 /** Balance units in one euro. */
 export const UNITS_PER_EURO = 1000;

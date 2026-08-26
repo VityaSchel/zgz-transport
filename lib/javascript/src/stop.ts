@@ -1,5 +1,10 @@
-import { assertInRange, assertLength, readUint16, writeUint16 } from "./bytes";
-import { TRAM_ROUTE } from "./route";
+import {
+	assertInRange,
+	assertLength,
+	readUint16,
+	writeUint16,
+} from "./bytes.ts";
+import { TRAM_ROUTE } from "./route.ts";
 
 /**
  * Where a transaction happened. Urban bus stops carry an internal stop id, tram stops

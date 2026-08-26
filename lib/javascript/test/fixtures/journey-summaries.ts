@@ -1,4 +1,4 @@
-import type { JourneySummary } from "../../src/journey-summary";
+import type { JourneySummary } from "../../src/journey-summary.ts";
 
 export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 	[

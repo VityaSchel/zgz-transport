@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { routeName } from "../src/route";
+import { routeName } from "../src/route.ts";
 
 it("names routes like the operator", () => {
 	expect([11, 14, 31, 111, 117, 210].map(routeName)).toEqual([

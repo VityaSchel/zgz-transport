@@ -1,4 +1,9 @@
-import { assertInRange, assertLength, readUint16, writeUint16 } from "./bytes";
+import {
+	assertInRange,
+	assertLength,
+	readUint16,
+	writeUint16,
+} from "./bytes.ts";
 
 /** A calendar date as packed into two bytes. */
 export type Date16Bit = {

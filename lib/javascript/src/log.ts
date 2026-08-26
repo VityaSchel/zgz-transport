@@ -1,5 +1,5 @@
-import { isZero } from "./bytes";
-import { decodeTransaction, type Transaction } from "./transaction";
+import { isZero } from "./bytes.ts";
+import { decodeTransaction, type Transaction } from "./transaction.ts";
 
 /** Block holding the newest transaction. */
 export const LIVE_BLOCK = 5;

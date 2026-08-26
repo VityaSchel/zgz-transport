@@ -4,9 +4,9 @@ import {
 	BLOCK_SIZE,
 	isZero,
 	withChecksum,
-} from "./bytes";
-import { decodeDate, encodeDate, type Date16Bit } from "./date";
-import { decodeTime, encodeTime, type Time } from "./time";
+} from "./bytes.ts";
+import { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
+import { decodeTime, encodeTime, type Time } from "./time.ts";
 
 /** Block 13 or 17 of a personal card, copied in 14 and 18. */
 export type Subscription = {

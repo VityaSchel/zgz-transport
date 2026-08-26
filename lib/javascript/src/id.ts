@@ -3,7 +3,7 @@ import {
 	assertLength,
 	BLOCK_SIZE,
 	withChecksum,
-} from "./bytes";
+} from "./bytes.ts";
 
 const ID_FORMAT = /^[A-Z]{2}[0-9]{6,26}$/;
 

@@ -3,8 +3,8 @@ import {
 	decodeTransaction,
 	encodeTransaction,
 	isFreeTransfer,
-} from "../src/transaction";
-import { transactions } from "./fixtures/transactions";
+} from "../src/transaction.ts";
+import { transactions } from "./fixtures/transactions.ts";
 
 it("decodes transactions", () => {
 	for (const { encoded, decoded } of transactions) {

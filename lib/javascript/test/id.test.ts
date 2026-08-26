@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { decodeId, encodeId } from "../src/id";
+import { decodeId, encodeId } from "../src/id.ts";
 
 const cases = [
 	{ encoded: "42453227430000000000000000000051", decoded: "BE322743" },

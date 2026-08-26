@@ -4,7 +4,7 @@ import {
 	BLOCK_SIZE,
 	isZero,
 	withChecksum,
-} from "./bytes";
+} from "./bytes.ts";
 
 /** Known products and their value in bytes 0 to 2 of block 1. */
 export const CardType = {

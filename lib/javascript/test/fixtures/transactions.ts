@@ -1,4 +1,4 @@
-import type { Transaction } from "../../src/transaction";
+import type { Transaction } from "../../src/transaction.ts";
 
 const at = (
 	year: number,

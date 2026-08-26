@@ -1,11 +1,11 @@
 import { expect, it } from "bun:test";
-import { encodeBalance } from "../src/balance";
-import { decodeCard } from "../src/card";
-import { encodeId } from "../src/id";
-import { PERSONAL_JOURNEY_SUMMARY } from "../src/journey-summary";
-import { encodeCardType } from "../src/type";
-import { journeySummaries } from "./fixtures/journey-summaries";
-import { transactions } from "./fixtures/transactions";
+import { encodeBalance } from "../src/balance.ts";
+import { decodeCard } from "../src/card.ts";
+import { encodeId } from "../src/id.ts";
+import { PERSONAL_JOURNEY_SUMMARY } from "../src/journey-summary.ts";
+import { encodeCardType } from "../src/type.ts";
+import { journeySummaries } from "./fixtures/journey-summaries.ts";
+import { transactions } from "./fixtures/transactions.ts";
 
 const AVANZA_BLOCK_0 = "1D68C3A9BF880400C8000020000000AB";
 const LAZO_BLOCK_0 = "0468C3A9BF12341802008100000023AA";

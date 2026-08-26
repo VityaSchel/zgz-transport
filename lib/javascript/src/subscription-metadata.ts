@@ -6,8 +6,8 @@ import {
 	readUint16,
 	withChecksum,
 	writeUint16,
-} from "./bytes";
-import { decodeDate, encodeDate, type Date16Bit } from "./date";
+} from "./bytes.ts";
+import { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
 
 /** Block 12 or 16 of a personal card. */
 export type SubscriptionMetadata = {

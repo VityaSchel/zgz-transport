@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { encodeDate, decodeDate, type Date16Bit } from "../src/date";
+import { encodeDate, decodeDate, type Date16Bit } from "../src/date.ts";
 
 const tests: { date: Date16Bit; encoded: string }[] = [
 	{

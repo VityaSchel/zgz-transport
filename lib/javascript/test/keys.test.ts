@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { avanzaKeys, lazoKeys } from "../src/keys";
+import { avanzaKeys, lazoKeys } from "../src/keys.ts";
 
 it("returns Avanza keys per sector and product", () => {
 	expect(avanzaKeys(0).a).toBe("04000C0F0903");

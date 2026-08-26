@@ -3,8 +3,8 @@ import {
 	decodeJourneySummary,
 	encodeJourneySummary,
 	PERSONAL_JOURNEY_SUMMARY,
-} from "../src/journey-summary";
-import { journeySummaries } from "./fixtures/journey-summaries";
+} from "../src/journey-summary.ts";
+import { journeySummaries } from "./fixtures/journey-summaries.ts";
 
 it("decodes journey summaries", () => {
 	for (const { encoded, decoded } of journeySummaries) {

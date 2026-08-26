@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { decodeBalance, encodeBalance } from "../src/balance";
+import { decodeBalance, encodeBalance } from "../src/balance.ts";
 
 const tests = [
 	{
