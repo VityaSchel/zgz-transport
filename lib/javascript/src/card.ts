@@ -49,8 +49,8 @@ const LAST_USED_BLOCK = 33;
 const PRODUCT_SECTORS = [3, 4];
 
 function chipOf(dump: Uint8Array): Chip {
-	if (dump[5] === SAK_1K) return "1K";
 	if (dump[7] === SAK_4K) return "4K";
+	if (dump[5] === SAK_1K) return "1K";
 	throw new Error("block 0 carries neither a 1K nor a 4K SAK");
 }
 
