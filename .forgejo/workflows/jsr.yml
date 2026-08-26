@@ -77,4 +77,4 @@ jobs:
         run: |
           : "${JSR_TOKEN:?}"
           cd "$WORKSPACE/$PACKAGE_DIR"
-          bunx --bun "jsr@${JSR_CLI_VERSION}" publish --allow-dirty --token "$JSR_TOKEN"
+          bun x --bun "jsr@${JSR_CLI_VERSION}" publish --allow-dirty --token "$JSR_TOKEN"
