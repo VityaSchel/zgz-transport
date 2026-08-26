@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "zaragoza-bus-pwned",
+      "name": "zgz-transport",
       "devDependencies": {
         "@eslint/compat": "^2.0.2",
         "@eslint/js": "^10.0.1",
