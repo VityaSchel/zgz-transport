@@ -21,5 +21,8 @@
 		"source.fixAll.eslint": "explicit"
 	},
 	"editor.indentSize": "tabSize",
-	"editor.detectIndentation": false
+	"editor.detectIndentation": false,
+	"evenBetterToml.schema.associations": {
+		"(^|/)Cargo\\.toml$": "https://raw.githubusercontent.com/rust-lang/cargo/master/crates/cargo-util-schemas/manifest.schema.json"
+	}
 }
