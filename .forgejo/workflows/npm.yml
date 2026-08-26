@@ -13,9 +13,6 @@ jobs:
     runs-on: ["publish", "hetzner"]
     timeout-minutes: 15
 
-    permissions:
-      contents: read
-
     defaults:
       run:
         shell: >-
