@@ -1,6 +1,6 @@
 {
 	"name": "zgz-transport",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Zaragoza and Aragon transport card (Avanza, Lazo) encoder and decoder",
 	"homepage": "https://git.hloth.dev/hloth/zgz-transport",
 	"bugs": {
