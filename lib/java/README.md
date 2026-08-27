@@ -2,7 +2,7 @@
 
 Encoder and decoder for the Zaragoza and Aragon transport cards (Avanza Tarjeta Bus, Lazo), based on the reverse-engineered card spec at [https://git.hloth.dev/hloth/zgz-transport](https://git.hloth.dev/hloth/zgz-transport).
 
-Zero runtime dependencies, usable from Java, Kotlin and Android, MIT License. Supports Java 17 or newer.
+Zero runtime dependencies, usable from Java >= 17, Kotlin and Android API >= 26, MIT License.
 
 ## Install
 
@@ -14,17 +14,17 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.3</version>
 </dependency>
 ```
 
 Kotlin:
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:1.0.0")
+implementation("dev.hloth:zgz-transport:1.0.3")
 ```
 
-**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/1.0.0):**
+**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/1.0.3):**
 
 Java:
 
@@ -41,7 +41,7 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.3</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ repositories {
 ```
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:1.0.0")
+implementation("dev.hloth:zgz-transport:1.0.3")
 ```
 
 ## Usage
@@ -133,12 +133,12 @@ The published jars are reproducible. Build from a git clone, since the timestamp
 
 ```sh
 git clone https://git.hloth.dev/hloth/zgz-transport.git && cd zgz-transport/lib/java
-git checkout v1.0.0
+git checkout v1.0.3
 ./mvnw -B -DskipTests package
 shasum -a 256 target/zgz-transport-*.jar
 
-curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/1.0.0/zgz-transport-1.0.0.jar
-shasum -a 256 zgz-transport-1.0.0.jar
+curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/1.0.3/zgz-transport-1.0.3.jar
+shasum -a 256 zgz-transport-1.0.3.jar
 ```
 
 ## License

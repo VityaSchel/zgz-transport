@@ -373,7 +373,7 @@ Start from [src/lib.rs](lib/rust/src/lib.rs).
 
 ### Java, Kotlin
 
-[lib/java](lib/java) is the spec implementation library in Java 17. Zero dependencies, usable from Java, Kotlin and Android, MIT License. The library is published on [Maven Central](https://central.sonatype.com/artifact/dev.hloth/zgz-transport) as `dev.hloth:zgz-transport`.
+[lib/java](lib/java) is the spec implementation library in Java. Zero dependencies, usable from Java >= 17, Kotlin and Android API >= 26, MIT License. The library is published on [Maven Central](https://central.sonatype.com/artifact/dev.hloth/zgz-transport) and on self-hosted [Maven repository at git.hloth.dev](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport) as `dev.hloth:zgz-transport`.
 
 Start from [src/main/java/dev/hloth/zgztransport/Card.java](lib/java/src/main/java/dev/hloth/zgztransport/Card.java).
 
