@@ -2,35 +2,46 @@
 
 Encoder and decoder for the Zaragoza and Aragon transport cards (Avanza Tarjeta Bus, Lazo), based on the reverse-engineered card spec at [https://git.hloth.dev/hloth/zgz-transport](https://git.hloth.dev/hloth/zgz-transport).
 
-Supports Node.js 25+, Bun, Deno and 2025 browsers.
+Zero dependencies, TypeScript definitions, 3.4KB (gzipped), MIT License. Supports Node.js >= 25.0, Bun, Deno and 2025 browsers.
 
-Install from [npm](https://www.npmjs.com/package/zgz-transport):
+## Install
+
+**From [npm](https://www.npmjs.com/package/zgz-transport):**
 
 ```sh
 # npm:
 npm install zgz-transport
+
 # Bun:
 bun add zgz-transport
+
 # pnpm:
 pnpm add zgz-transport
+
 # Yarn:
 yarn add zgz-transport
 ```
 
-Or [JSR](https://jsr.io/@hloth/zgz-transport):
+**From [JSR](https://jsr.io/@hloth/zgz-transport):**
 
 ```sh
 # Deno:
 deno add jsr:@hloth/zgz-transport
+
 # Bun:
 bun x jsr add @hloth/zgz-transport
+
 # npm:
 npx jsr add @hloth/zgz-transport
+
 # pnpm:
 pnpm add jsr:@hloth/zgz-transport
+
 # Yarn:
 yarn add jsr:@hloth/zgz-transport
 ```
+
+## Usage
 
 Decode a dump read with MIFARE Classic Tool or a Proxmark from `Uint8Array` or `Buffer`:
 
@@ -69,3 +80,11 @@ const block5 = encodeTransaction({
 	sequence: 1,
 });
 ```
+
+## License
+
+[MIT](../../LICENSE)
+
+## Donate
+
+[hloth.dev/donate](https://hloth.dev/donate)
