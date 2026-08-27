@@ -2,7 +2,7 @@
 
 Encoder and decoder for the Zaragoza and Aragon transport cards (Avanza Tarjeta Bus, Lazo), based on the reverse-engineered card spec at [https://git.hloth.dev/hloth/zgz-transport](https://git.hloth.dev/hloth/zgz-transport).
 
-Zero dependencies, usable from Java, Kotlin and Android, MIT License. Supports Java 17 or newer.
+Zero runtime dependencies, usable from Java, Kotlin and Android, MIT License. Supports Java 17 or newer.
 
 ## Install
 
@@ -24,7 +24,7 @@ Kotlin:
 implementation("dev.hloth:zgz-transport:1.0.0")
 ```
 
-**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages):**
+**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/1.0.0):**
 
 Java:
 

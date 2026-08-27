@@ -1,5 +1,10 @@
 # Zaragoza & Aragon Transport Card Spec
 
+[![NPM Version](https://img.shields.io/npm/v/zgz-transport?style=flat-square&logo=npm&logoColor=23ffffff%&label=%20&color=%23cd0000)](https://www.npmjs.com/package/zgz-transport) [![JSR Version](https://img.shields.io/jsr/v/%40hloth/zgz-transport?style=flat-square&logo=jsr&logoColor=%23f7df1e&label=%20&color=%23155775)](https://jsr.io/@hloth/zgz-transport) [![Crates.io Version](https://img.shields.io/crates/v/zgz-transport?style=flat-square&logo=rust&label=%20&color=black)
+](https://crates.io/crates/zgz-transport) [![Maven Central Version](https://img.shields.io/maven-central/v/dev.hloth/zgz-transport?style=flat-square&logo=apache-maven&logoColor=%23f18900&label=%20&color=%2327282c)
+](https://central.sonatype.com/artifact/dev.hloth/zgz-transport)
+
+
 > [!IMPORTANT]
 > ⚠️ **Aviso legal:** Este repositorio es un proyecto de investigación de seguridad independiente. \
 > No está destinado a cometer fraude ni a facilitar el uso indebido del transporte público. \
@@ -57,7 +62,6 @@ Every sector has two keys (Key A and Key B) that control access to its blocks, a
 | UID     | 4 bytes                                   | 7 bytes                                               |
 | Sectors | 16                                        | 40 (sectors 0-31 with 4 blocks, 32-39 with 16 blocks) |
 | Blocks  | 64                                        | 256                                                   |
-|         |                                           |                                                       |
 
 What is stored inside the blocks is the same on both cards and is documented once under [data structures](#data-structures). Block 1 tells the products apart, see [card type](#card-type). Everything that is still unresolved is collected under [unconfirmed](#unconfirmed).
 
@@ -70,7 +74,6 @@ What is stored inside the blocks is the same on both cards and is documented onc
 | 0-8                             | `04000C0F0903` | `0B02070A0409` |
 | 9-15 (unused) on top up cards   | `A0A1A2A3A4A5` | `B0B1B2B3B4B5` |
 | 9-15 (unused) on personal cards | `04000C0F0903` | `0B02070A0409` |
-|                                 |                |                |
 
 On top up cards Key B can rewrite the keys and access conditions of every sector (trailer access bits `011`); on personal cards the trailers are locked (`110`). The access conditions of the data blocks are the same on both.
 
@@ -114,7 +117,6 @@ On top up cards Key B can rewrite the keys and access conditions of every sector
 |        | 33    | See block 28                                                                                                                                                                           | `02..,,..,,..,,..,,..,,..,,..,,..` | No restrictions      |
 |        | 34    | Expiration date, encoding unknown; always `00000000FFFFFFFF0000000000FF00FF` on top up cards                                                                                           | `00000000FFFFFFFF0000000000FF00FF` | Value block          |
 |        | 35    | 8th sector's trailer block                                                                                                                                                             | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
-|        |       |                                                                                                                                                                                        |                                    |                      |
 
 Blocks 8, 9 and 34 are value blocks: a 32-bit integer, its bitwise complement, then the integer again, with value block access conditions (Key A can read, decrement, restore and transfer, Key B can also write and increment).
 
@@ -132,7 +134,6 @@ Blocks 8, 9 and 34 are value blocks: a 32-bit integer, its bitwise complement, t
 | 36             | 192-207 | `354B39454861` | `567D734C403C` |
 | 37             | 208-223 | `455D732C385F` | `2426217B3B3B` |
 | 38-39 (unused) | 224-255 | `FFFFFFFFFFFF` | `FFFFFFFFFFFF` |
-|                |         |                |                |
 
 Sectors 38 and 39 still have the factory default keys and access conditions (`FF0780`).
 
@@ -166,7 +167,6 @@ Sectors 38 and 39 still have the factory default keys and access conditions (`FF
 | 16-31  | data blocks 64-126                     | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Value block                   |
 | 32-37  | data blocks 128-222                    | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
 | 38-39  | data blocks 224-254                    | Empty, never personalized                                                                                                                                                                                 | `00000000000000000000000000000000` | No restrictions               |
-|        |                                        |                                                                                                                                                                                                           |                                    |                               |
 
 The trailer blocks of sectors 9-39 (39, 43, ..., 127, then 143, 159, 175, 191, 207, 223, 239 and 255) hold the keys from the table above.
 
@@ -210,7 +210,6 @@ Block 1 says which product a card is:
 | Balance top-up Avanza card    | MIFARE Classic 1K | `02699F000000000000000000000000` |
 | Personal expiring Avanza card | MIFARE Classic 1K | `0A9775000000000000000000000000` |
 | Balance top-up Lazo card      | MIFARE Classic 4K | `0D371F000000000000000000000000` |
-|                               |                   |                                  |
 
 Top up cards pay for each journey out of a [balance](#balance); personal cards use a [subscription](#subscription) and never change balance.
 
@@ -339,7 +338,6 @@ The urban stop id in [05-06] is a location, e.g. `8180` in both directions for b
 | 35   | `8099`      | `09`    | 707  | Plaza Aragón 1 in the 2013 dump |
 | 31   | `807E`      | `08`    | 147  | Av. Francisco de Goya 83        |
 | 22   | `81C8`      | `0D`    | 434  | Duquesa Villahermosa 3          |
-|      |             |         |      |                                 |
 
 ### Block 24
 
