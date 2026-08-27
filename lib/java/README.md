@@ -127,6 +127,20 @@ val summary: JourneySummary? = card.journeySummary.getOrNull()
 
 Build transactions with the builder rather than constructor in Kotlin.
 
+## Verifying the build
+
+The published jars are reproducible. Build from a git clone, since the timestamps inside the archives come from the release commit, with `umask 022` and the JDK the release workflow pins, the exact version must be Eclipse Temurin 21.0.12.1+1. OS and arch do not matter.
+
+```sh
+git clone https://git.hloth.dev/hloth/zgz-transport.git && cd zgz-transport/lib/java
+git checkout v1.0.0
+./mvnw -B -DskipTests package
+shasum -a 256 target/zgz-transport-*.jar
+
+curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/1.0.0/zgz-transport-1.0.0.jar
+shasum -a 256 zgz-transport-1.0.0.jar
+```
+
 ## License
 
 [MIT](../../LICENSE)

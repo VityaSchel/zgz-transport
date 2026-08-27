@@ -79,8 +79,10 @@ jobs:
 
       - name: Check
         run: |
+          umask 022
           cd "$WORKSPACE/$PACKAGE_DIR"
           ./mvnw -B --no-transfer-progress verify
+          sha256sum target/*.jar
 
       - name: Sign and stage the release
         env:
@@ -88,6 +90,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           : "${MAVEN_GPG_KEY:?}" "${MAVEN_GPG_PASSPHRASE:?}"
+          umask 022
           cd "$WORKSPACE/$PACKAGE_DIR"
 
           rm -rf "$GNUPGHOME"
@@ -143,6 +146,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           : "${MAVEN_CENTRAL_USERNAME:?}" "${MAVEN_CENTRAL_PASSWORD:?}" "${MAVEN_GPG_PASSPHRASE:?}"
+          umask 022
           cd "$WORKSPACE/$PACKAGE_DIR"
           ./mvnw -B --no-transfer-progress -s /tmp/settings-central.xml -Pcentral -DskipTests deploy
 
