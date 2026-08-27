@@ -108,9 +108,10 @@ jobs:
 
       - name: Publish to the Forgejo package registry
         env:
-          FORGEJO_PACKAGES_TOKEN: ${{ secrets.FORGEJO_PACKAGES_TOKEN }}
+          PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
         run: |
-          : "${FORGEJO_PACKAGES_TOKEN:?}"
+          : "${PACKAGES_TOKEN:?}"
+          umask 022
           cd "$WORKSPACE/$PACKAGE_DIR"
 
           coordinate() {
@@ -122,7 +123,7 @@ jobs:
           registry="$FORGEJO_SERVER_URL/api/packages/hloth/maven"
           jar="$registry/${group//.//}/$artifact/$version/$artifact-$version.jar"
 
-          if curl -sfI -H "Authorization: token $FORGEJO_PACKAGES_TOKEN" "$jar" >/dev/null; then
+          if curl -sfI -H "Authorization: token $PACKAGES_TOKEN" "$jar" >/dev/null; then
             echo "$artifact $version is already in the Forgejo registry, which refuses to overwrite it; skipping"
             exit 0
           fi
@@ -131,7 +132,7 @@ jobs:
             '<settings><servers><server>' \
             '<id>forgejo</id>' \
             '<username>hloth</username>' \
-            '<password>${env.FORGEJO_PACKAGES_TOKEN}</password>' \
+            '<password>${env.PACKAGES_TOKEN}</password>' \
             '</server></servers></settings>' > /tmp/settings-forgejo.xml
           ./mvnw -B --no-transfer-progress -s /tmp/settings-forgejo.xml -Pforgejo -DskipTests deploy
 
