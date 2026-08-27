@@ -51,7 +51,7 @@ export type TopUp = TransactionBase & { kind: "topUp" };
 export type Transaction = Journey | TopUp;
 
 /** Whether a transaction is a journey that cost nothing. Every journey on a personal unlimited card is free. */
-export const isFree = (transaction: Transaction) =>
+export const isFree = (transaction: Transaction): boolean =>
 	transaction.kind === "journey" && transaction.amount === 0;
 
 /**
@@ -59,7 +59,7 @@ export const isFree = (transaction: Transaction) =>
  * operator grants once per ride, to another route, within 60 minutes on the urban network
  * and 75 when a CTAZ card enters Zaragoza.
  */
-export const isTransfer = (transaction: Transaction) =>
+export const isTransfer = (transaction: Transaction): boolean =>
 	isFree(transaction) &&
 	transaction.consecutivePayments > 0 &&
 	transaction.cardType !== "AvanzaPersonalUnlimited";
@@ -68,7 +68,7 @@ export const isTransfer = (transaction: Transaction) =>
  * Whether a journey is a check-out at a gated station, which carries no payment counter.
  * Rests on the single Cercanías check-out in the dumps, so treat it as provisional.
  */
-export const isCheckOut = (transaction: Transaction) =>
+export const isCheckOut = (transaction: Transaction): boolean =>
 	isFree(transaction) && transaction.consecutivePayments === 0;
 
 /**
