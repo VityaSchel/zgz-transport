@@ -2,11 +2,17 @@
 
 Encoder and decoder for the Zaragoza and Aragon transport cards (Avanza Tarjeta Bus, Lazo), based on the reverse-engineered card spec at [https://git.hloth.dev/hloth/zgz-transport](https://git.hloth.dev/hloth/zgz-transport).
 
-`no_std` with `alloc`, no dependencies, Rust 1.88 or newer. Install from [crates.io](https://crates.io/crates/zgz-transport):
+`no_std` with `alloc`, no dependencies, Rust 1.88 or newer.
+
+## Install
+
+**From [crates.io](https://crates.io/crates/zgz-transport):**
 
 ```sh
 cargo add zgz-transport
 ```
+
+## Usage
 
 Decode a dump read with MIFARE Classic Tool or a Proxmark, at least blocks 0 to 33:
 
@@ -62,3 +68,11 @@ fn main() -> Result<(), zgz_transport::Error> {
 	Ok(())
 }
 ```
+
+## License
+
+[MIT](../../LICENSE)
+
+## Donate
+
+[hloth.dev/donate](https://hloth.dev/donate)
