@@ -33,7 +33,7 @@ class SubscriptionTest {
 	@Test
 	void rejectsABlockThatDoesNotMatchItsChecksum() {
 		byte[] block = Hex.bytes(Fixtures.SUBSCRIPTION);
-		block[15] ^= 0x80;
+		block[15] = (byte) (block[15] ^ 0x80);
 		assertThrows(CardFormatException.class, () -> Subscription.decode(block));
 	}
 
