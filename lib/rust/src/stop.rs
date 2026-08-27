@@ -5,11 +5,13 @@ use crate::route::Route;
 /// Where a transaction happened, bytes 5 and 6 of a transaction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Stop {
-	/// Bit 15 set: an urban bus stop with an internal stop id.
+	/// Bit 15 set: an urban bus stop with an internal stop id, scoped to the route rather than
+	/// shared across the network.
 	Urban(u16),
 	/// Bit 15 clear on the tram route: the stop number × 100.
 	Tram(u16),
-	/// Bit 15 clear on any other route: an id of that operator.
+	/// Bit 15 clear on any other route: an id of that operator. On Cercanías the low byte looks
+	/// like the station's position along the line, counting from the far terminus.
 	Other(u16),
 }
 

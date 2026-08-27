@@ -41,7 +41,7 @@ pub struct Transaction {
 	pub card_type: CardType,
 	/// Byte 1: `0` on top up cards, `1` or `2` on personal cards.
 	pub network_flag: u8,
-	/// Money moved in [`Balance::UNITS_PER_EURO`](crate::Balance::UNITS_PER_EURO) units, `0` on free transfers.
+	/// Money moved in [`Balance::UNITS_PER_EURO`](crate::Balance::UNITS_PER_EURO) units, `0` when the journey cost nothing.
 	pub amount: u16,
 	/// Payments of this card at one terminal in a row, counting from `1`; `0` on top ups.
 	pub consecutive_payments: u8,
@@ -51,8 +51,8 @@ pub struct Transaction {
 	pub route: Route,
 	/// Byte 8.
 	pub kind: TransactionKind,
-	/// Byte 9, on buses most likely the ordinal of the vehicle run that day.
-	pub run_counter: u8,
+	/// Byte 9, on buses most likely which trip of the vehicle's daily duty this is, counting from 1.
+	pub duty_trip: u8,
 	/// Bytes 10 to 14.
 	pub created_at: DateTime,
 	/// `0` to `4`, selects the archive block, see [`Transaction::archive_block`].
@@ -75,7 +75,7 @@ impl Transaction {
 			s1,
 			route,
 			kind,
-			run_counter,
+			duty_trip,
 			d0,
 			d1,
 			hour,
@@ -95,7 +95,7 @@ impl Transaction {
 			stop: Stop::decode([s0, s1], route),
 			route,
 			kind,
-			run_counter,
+			duty_trip,
 			created_at,
 			sequence,
 		})
@@ -119,7 +119,7 @@ impl Transaction {
 			s1,
 			self.route.0,
 			self.kind.byte(),
-			self.run_counter,
+			self.duty_trip,
 			d0,
 			d1,
 			hour,
@@ -129,9 +129,27 @@ impl Transaction {
 		])
 	}
 
-	/// Whether the transaction is a journey that cost nothing.
+	/// Whether the transaction is a journey that cost nothing. Every journey on a personal
+	/// unlimited card is free.
 	#[must_use]
-	pub const fn is_free_transfer(self) -> bool {
+	pub const fn is_free(self) -> bool {
 		matches!(self.kind, TransactionKind::Journey(_)) && self.amount == 0
+	}
+
+	/// Whether the journey is the free transfer a balance card earns after a paid ride, which the
+	/// operator grants once per ride, to another route, within 60 minutes on the urban network and
+	/// 75 when a CTAZ card enters Zaragoza.
+	#[must_use]
+	pub const fn is_transfer(self) -> bool {
+		self.is_free()
+			&& self.consecutive_payments > 0
+			&& !matches!(self.card_type, CardType::AvanzaPersonalUnlimited)
+	}
+
+	/// Whether the journey is a check-out at a gated station, which carries no payment counter.
+	/// Rests on the single Cercanías check-out in the dumps, so treat it as provisional.
+	#[must_use]
+	pub const fn is_check_out(self) -> bool {
+		self.is_free() && self.consecutive_payments == 0
 	}
 }

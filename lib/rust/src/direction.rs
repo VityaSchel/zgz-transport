@@ -1,6 +1,7 @@
 use crate::error::{Error, Result};
 
-/// Direction of a journey along its route, byte 8 of a transaction.
+/// Direction of a journey along its route, byte 8 of a transaction: the operator's GTFS
+/// `direction_id` plus one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Direction {

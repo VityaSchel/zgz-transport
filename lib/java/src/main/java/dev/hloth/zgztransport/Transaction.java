@@ -14,7 +14,7 @@ import java.util.Optional;
  *            personal ones
  * @param amount
  *            the money moved, in {@link Balance#UNITS_PER_EURO} units,
- *            {@code 0} on a free transfer
+ *            {@code 0} when the journey cost nothing
  * @param consecutivePayments
  *            payments of this card at one terminal in a row, counting from
  *            {@code 1}, or {@code 0} on a top up
@@ -24,9 +24,9 @@ import java.util.Optional;
  *            the route, or {@link Route} {@code 0} on a top up made off board
  * @param kind
  *            whether it was a journey or a top up
- * @param runCounter
- *            byte 9, on buses most likely the ordinal of the run the vehicle
- *            was on
+ * @param dutyTrip
+ *            byte 9, on buses most likely which trip of the vehicle daily duty
+ *            this is, counting from {@code 1}
  * @param createdAt
  *            when the card wrote the record
  * @param sequence
@@ -34,7 +34,7 @@ import java.util.Optional;
  *            moves to
  */
 public record Transaction(CardType cardType, int networkFlag, int amount, int consecutivePayments, Stop stop,
-		Route route, TransactionKind kind, int runCounter, CardDateTime createdAt, int sequence) implements Encodable {
+		Route route, TransactionKind kind, int dutyTrip, CardDateTime createdAt, int sequence) implements Encodable {
 
 	/**
 	 * Checks the ranges of the numeric fields and that the others are present.
@@ -53,7 +53,7 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 		Bytes.checkRange("networkFlag", networkFlag, 0, 0xff);
 		Bytes.checkRange("amount", amount, 0, 0xffff);
 		Bytes.checkRange("consecutivePayments", consecutivePayments, 0, 0xff);
-		Bytes.checkRange("runCounter", runCounter, 0, 0xff);
+		Bytes.checkRange("dutyTrip", dutyTrip, 0, 0xff);
 		Bytes.checkRange("sequence", sequence, 0, 0xff);
 	}
 
@@ -92,7 +92,7 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 		System.arraycopy(stop.encode(), 0, block, 5, Stop.BYTES);
 		block[7] = (byte) route.id();
 		block[8] = (byte) kind.value();
-		block[9] = (byte) runCounter;
+		block[9] = (byte) dutyTrip;
 		System.arraycopy(createdAt.encode(), 0, block, 10, CardDateTime.BYTES);
 		block[15] = (byte) sequence;
 		return block;
@@ -108,13 +108,35 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	}
 
 	/**
-	 * Whether this is a ride that cost nothing, which the operator grants within
-	 * about half an hour of a paid one.
+	 * Whether this is a ride that cost nothing. Every journey on a personal
+	 * unlimited card is free.
 	 *
 	 * @return true when this is a journey of amount zero
 	 */
-	public boolean isFreeTransfer() {
+	public boolean isFree() {
 		return kind instanceof TransactionKind.Journey && amount == 0;
+	}
+
+	/**
+	 * Whether this is the free transfer a balance card earns after a paid ride,
+	 * which the operator grants once per ride, to another route, within 60 minutes
+	 * on the urban network and 75 when a CTAZ card enters Zaragoza.
+	 *
+	 * @return true when this is a free journey carrying a payment counter
+	 */
+	public boolean isTransfer() {
+		return isFree() && consecutivePayments > 0 && cardType != CardType.AVANZA_PERSONAL_UNLIMITED;
+	}
+
+	/**
+	 * Whether this is a check-out at a gated station, which carries no payment
+	 * counter. Rests on the single Cercanias check-out in the dumps, so treat it as
+	 * provisional.
+	 *
+	 * @return true when this is a free journey without a payment counter
+	 */
+	public boolean isCheckOut() {
+		return isFree() && consecutivePayments == 0;
 	}
 
 	/**

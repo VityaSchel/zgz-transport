@@ -17,7 +17,8 @@ public sealed interface Stop extends Encodable {
 	 * An urban bus stop, which the operator numbers internally.
 	 *
 	 * @param id
-	 *            the stop id, {@code 0} to {@link #MAX_ID}
+	 *            the stop id, {@code 0} to {@link #MAX_ID}, scoped to the route
+	 *            rather than shared across the network
 	 */
 	record Urban(int id) implements Stop {
 		/**

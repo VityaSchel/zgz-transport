@@ -1,6 +1,9 @@
 package dev.hloth.zgztransport;
 
-/** Direction of a journey along its route, byte 8 of a transaction. */
+/**
+ * Direction of a journey along its route, byte 8 of a transaction: the operator
+ * GTFS {@code direction_id} plus one.
+ */
 public enum Direction {
 	/** Byte {@code 01}; south on the tram. */
 	ONE(1),

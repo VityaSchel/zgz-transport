@@ -6,7 +6,7 @@ use super::at;
 
 pub fn transactions() -> Vec<(&'static str, Transaction)> {
 	let journey =
-		|amount, stop, route, direction, run_counter, (y, mo, d, h, mi, s), sequence| Transaction {
+		|amount, stop, route, direction, duty_trip, (y, mo, d, h, mi, s), sequence| Transaction {
 			card_type: CardType::AvanzaTopUp,
 			network_flag: 0,
 			amount,
@@ -14,7 +14,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 			stop,
 			route: Route(route),
 			kind: TransactionKind::Journey(direction),
-			run_counter,
+			duty_trip,
 			created_at: at(y, mo, d, h, mi, s),
 			sequence,
 		};
@@ -61,7 +61,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 				stop: Other(7980),
 				route: Route(0),
 				kind: TransactionKind::TopUp,
-				run_counter: 0,
+				duty_trip: 0,
 				created_at: at(2026, 4, 4, 13, 18, 54),
 				sequence: 4,
 			},
@@ -76,7 +76,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 				stop: Urban(500),
 				route: Route(11),
 				kind: TransactionKind::Journey(One),
-				run_counter: 7,
+				duty_trip: 7,
 				created_at: at(2026, 3, 15, 9, 41, 27),
 				sequence: 4,
 			},
@@ -91,7 +91,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 				stop: Tram(1500),
 				route: Route::TRAM,
 				kind: TransactionKind::Journey(Two),
-				run_counter: 1,
+				duty_trip: 1,
 				created_at: at(2026, 8, 24, 22, 44, 32),
 				sequence: 0,
 			},

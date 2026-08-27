@@ -13,8 +13,8 @@ package dev.hloth.zgztransport;
  *
  * <pre>{@code
  * Transaction ride = Transaction.builder().cardType(CardType.AVANZA_TOP_UP).amount(550).consecutivePayments(1)
- * 		.stop(new Stop.Urban(500)).route(new Route(31)).kind(new TransactionKind.Journey(Direction.TWO))
- * 		.runCounter(7).createdAt(CardDateTime.of(2026, 8, 26, 9, 41, 27)).sequence(1).build();
+ * 		.stop(new Stop.Urban(500)).route(new Route(31)).kind(new TransactionKind.Journey(Direction.TWO)).dutyTrip(7)
+ * 		.createdAt(CardDateTime.of(2026, 8, 26, 9, 41, 27)).sequence(1).build();
  * }</pre>
  */
 public final class TransactionBuilder {
@@ -26,7 +26,7 @@ public final class TransactionBuilder {
 	private Stop stop;
 	private Route route;
 	private TransactionKind kind;
-	private int runCounter;
+	private int dutyTrip;
 	private CardDateTime createdAt;
 	private int sequence;
 
@@ -68,8 +68,8 @@ public final class TransactionBuilder {
 		return this;
 	}
 
-	public TransactionBuilder runCounter(int runCounter) {
-		this.runCounter = runCounter;
+	public TransactionBuilder dutyTrip(int dutyTrip) {
+		this.dutyTrip = dutyTrip;
 		return this;
 	}
 
@@ -93,7 +93,7 @@ public final class TransactionBuilder {
 	 *             if a field that has no default was not set
 	 */
 	public Transaction build() {
-		return new Transaction(cardType, networkFlag, amount, consecutivePayments, stop, route, kind, runCounter,
+		return new Transaction(cardType, networkFlag, amount, consecutivePayments, stop, route, kind, dutyTrip,
 				createdAt, sequence);
 	}
 }

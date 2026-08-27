@@ -46,7 +46,7 @@ fn main() -> Result<(), zgz_transport::Error> {
 		stop: Stop::Urban(500),
 		route: Route(31),
 		kind: TransactionKind::Journey(Direction::Two),
-		run_counter: 7,
+		duty_trip: 7,
 		created_at: DateTime {
 			date: Date { year: 2026, month: 8, day: 26 },
 			time: Time { hour: 9, minute: 41, second: 27 },

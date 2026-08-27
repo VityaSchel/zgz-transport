@@ -14,17 +14,17 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>1.0.3</version>
+	<version>2.0.0</version>
 </dependency>
 ```
 
 Kotlin:
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:1.0.3")
+implementation("dev.hloth:zgz-transport:2.0.0")
 ```
 
-**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/1.0.3):**
+**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/2.0.0):**
 
 Java:
 
@@ -41,7 +41,7 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>1.0.3</version>
+	<version>2.0.0</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ repositories {
 ```
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:1.0.3")
+implementation("dev.hloth:zgz-transport:2.0.0")
 ```
 
 ## Usage
@@ -133,12 +133,12 @@ The published jars are reproducible. Build from a git clone, since the timestamp
 
 ```sh
 git clone https://git.hloth.dev/hloth/zgz-transport.git && cd zgz-transport/lib/java
-git checkout v1.0.3
+git checkout v2.0.0
 ./mvnw -B -DskipTests package
 shasum -a 256 target/zgz-transport-*.jar
 
-curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/1.0.3/zgz-transport-1.0.3.jar
-shasum -a 256 zgz-transport-1.0.3.jar
+curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/2.0.0/zgz-transport-2.0.0.jar
+shasum -a 256 zgz-transport-2.0.0.jar
 ```
 
 ## License

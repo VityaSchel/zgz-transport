@@ -26,15 +26,28 @@ class TransactionTest {
 	}
 
 	@Test
-	void tellsFreeTransfersFromPaidJourneysAndTopUps() {
+	void tellsFreeJourneysFromPaidOnesAndTopUps() {
 		Transaction paid = Fixtures.transactions().get(0).decoded();
 		Transaction topUp = Fixtures.transactions().get(8).decoded();
 		Transaction transfer = Fixtures.transactions().get(10).decoded();
-		assertFalse(paid.isFreeTransfer());
-		assertFalse(topUp.isFreeTransfer());
-		assertTrue(transfer.isFreeTransfer());
+		assertFalse(paid.isFree());
+		assertFalse(topUp.isFree());
+		assertTrue(transfer.isFree());
 		assertFalse(new Transaction(topUp.cardType(), 0, 0, 0, topUp.stop(), topUp.route(), new TransactionKind.TopUp(),
-				0, topUp.createdAt(), 0).isFreeTransfer());
+				0, topUp.createdAt(), 0).isFree());
+	}
+
+	@Test
+	void tellsATransferFromACheckOut() {
+		Transaction transfer = Transaction.decode(Hex.bytes("0D0000000105DCD202013518162C2000"));
+		Transaction checkOut = Transaction.decode(Hex.bytes("0D000000002303A9010234FE09331E01"));
+		Transaction pass = Transaction.decode(Hex.bytes("0A0200000180010C021134590F1A0302"));
+		assertTrue(transfer.isTransfer());
+		assertFalse(transfer.isCheckOut());
+		assertTrue(checkOut.isCheckOut());
+		assertFalse(checkOut.isTransfer());
+		assertTrue(pass.isFree());
+		assertFalse(pass.isTransfer());
 	}
 
 	@Test
@@ -82,7 +95,7 @@ class TransactionTest {
 		Transaction ride = Fixtures.transactions().get(0).decoded();
 		assertEquals(ride, Transaction.builder().cardType(ride.cardType()).amount(ride.amount())
 				.consecutivePayments(ride.consecutivePayments()).stop(ride.stop()).route(ride.route()).kind(ride.kind())
-				.runCounter(ride.runCounter()).createdAt(ride.createdAt()).sequence(ride.sequence()).build());
+				.dutyTrip(ride.dutyTrip()).createdAt(ride.createdAt()).sequence(ride.sequence()).build());
 	}
 
 	@Test
@@ -93,7 +106,7 @@ class TransactionTest {
 		assertEquals(0, topUp.networkFlag());
 		assertEquals(0, topUp.amount());
 		assertEquals(0, topUp.consecutivePayments());
-		assertEquals(0, topUp.runCounter());
+		assertEquals(0, topUp.dutyTrip());
 		assertEquals(0, topUp.sequence());
 		assertThrows(NullPointerException.class, () -> Transaction.builder().build());
 	}

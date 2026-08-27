@@ -38,7 +38,9 @@ export { decodeTime, encodeTime, type Time } from "./time.ts";
 export {
 	decodeTransaction,
 	encodeTransaction,
-	isFreeTransfer,
+	isCheckOut,
+	isFree,
+	isTransfer,
 	type Direction,
 	type Journey,
 	type TopUp,

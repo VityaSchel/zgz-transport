@@ -18,32 +18,32 @@ fn encodes_transactions() {
 }
 
 #[test]
-fn tells_free_transfers_from_paid_journeys_and_top_ups() {
+fn tells_free_journeys_from_paid_ones_and_top_ups() {
 	let free: Vec<bool> = transactions()
 		.iter()
-		.map(|(_, decoded)| decoded.is_free_transfer())
+		.map(|(_, decoded)| decoded.is_free())
 		.collect();
 	assert_eq!(free, [[false; 9].as_slice(), &[true, true]].concat());
 }
 
 #[test]
-fn a_free_transfer_is_a_journey_without_amount() {
+fn a_free_journey_is_a_journey_without_amount() {
 	let (_, journey) = transactions()[9];
 	let (_, top_up) = transactions()[8];
-	assert!(journey.is_free_transfer());
+	assert!(journey.is_free());
 	assert!(
 		!Transaction {
 			amount: 0,
 			..top_up
 		}
-		.is_free_transfer()
+		.is_free()
 	);
 	assert!(
 		!Transaction {
 			amount: 550,
 			..journey
 		}
-		.is_free_transfer()
+		.is_free()
 	);
 }
 

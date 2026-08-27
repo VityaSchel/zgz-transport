@@ -73,10 +73,10 @@ final class Fixtures {
 						lastPaid(2026, 8, 24, 22, 11), 1, CardType.LAZO_TOP_UP, true, 210, Direction.TWO, 0x62)));
 	}
 
-	private static Transaction journey(int amount, Stop stop, int route, Direction direction, int runCounter,
+	private static Transaction journey(int amount, Stop stop, int route, Direction direction, int dutyTrip,
 			CardDateTime createdAt, int sequence) {
 		return new Transaction(CardType.AVANZA_TOP_UP, 0, amount, 1, stop, new Route(route),
-				new TransactionKind.Journey(direction), runCounter, createdAt, sequence);
+				new TransactionKind.Journey(direction), dutyTrip, createdAt, sequence);
 	}
 
 	private static JourneySummary summary(Optional<JourneySummary.Leg> previous, JourneySummary.LastPaid lastPaidAt,
