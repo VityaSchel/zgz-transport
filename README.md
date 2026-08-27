@@ -32,8 +32,8 @@ Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date
 		- [Subscription](#subscription)
 	- [Unconfirmed](#unconfirmed)
 		- [Byte 09 of a transaction](#byte-09-of-a-transaction)
-		- [Route ids 152, 169 and 251](#route-ids-152-169-and-251)
-		- [Directions](#directions)
+		- [Route ids 152 and 251](#route-ids-152-and-251)
+		- [Cercanias](#cercanias)
 		- [Stop ids](#stop-ids)
 		- [Block 24](#block-24)
 		- [Block 4](#block-4)
@@ -235,18 +235,18 @@ Six 16-byte records: block 5 holds the newest, blocks 28, 29, 30, 32 and 33 the 
 - [00] First byte of the [card type](#card-type)
 - [01] `00` on top up cards; `01` or `02` on personal cards, matching bit 15 of [05-06]
 - [02-03] Amount, big-endian, in [balance](#balance) units; `0000` when free of charge, always `0000` on personal cards
-- [04] Consecutive payments of this card at one terminal, counting from 1; `00` on top ups
+- [04] Consecutive payments of this card at one terminal, counting from 1; `00` on top ups and on a check-out
 - [05-06] Stop. Bit 15 set: an urban bus stop, the other 15 bits an internal stop id. Bit 15 clear: the tram, where the value is the stop number × 100 (`0514` = 1300 = Plaza España), or another operator
 - [07] Route id of the operator's GTFS feed: numbered buses have their number, Ci1 to Ci4 are 11 to 14, N1 to N7 are 111 to 117, the tram is 210
 - [08] `01` or `02`: a journey and its direction; `08`: a top up
-- [09] A per-run counter on buses, see [byte 09](#byte-09-of-a-transaction)
+- [09] See [byte 09](#byte-09-of-a-transaction)
 - [10-11] [Date](#date)
 - [12] Hour, [13] minute, [14] second, plain binary
 - [15] Sequence counter, 0 to 4
 
-A journey subtracts the amount from the balance, a top up adds it. A journey with amount `0000` is a free transfer, granted within about half an hour of a paid ride, on bus and tram alike. A top up carries the point of sale id in [05-06] and zeros in [04], [07] and [09], unless it was made on board, where it carries the line and stop like a journey. Top ups do not touch [block 10](#journey-summary-block-10), and the balance a new card is sold with leaves no record.
+A journey subtracts the amount from the balance, a top up adds it. A journey with amount `0000` is a free transfer. The operator grants [one per paid ride, to a different line](https://hola-zaragoza.avanzagrupo.com/hc/es-es/articles/37258377107860--C%C3%B3mo-funciona-el-transbordo-con-la-Tarjeta-BUS), within 60 minutes for the urban Tarjeta BUS and 75 when a CTAZ card enters Zaragoza; bus and tram count as one network. A top up carries the point of sale id in [05-06] and zeros in [04], [07] and [09], unless it was made on board, where it carries the line and stop like a journey. Top ups do not touch [block 10](#journey-summary-block-10), and the balance a new card is sold with leaves no record.
 
-Known directions: on the tram `01` runs south to Mago de Oz and `02` north to Avenida de la Academia; on bus 31 `02` runs to Puerto Venecia and `01` to Aljafería; on bus 22 `02` runs to Las Fuentes and `01` to Bombarda. Other lines: see [directions](#directions).
+Byte [08] is the operator's GTFS `direction_id` plus one, so it picks one of the two headsigns the feed gives that route: `01` is `direction_id` 0 and `02` is `direction_id` 1. The ring buses only ever run `01`. The tram directions are still unconfirmed, probably `01` runs south to Mago de Oz and `02` north to Avenida de la Academia.
 
 See implementation for [JS](lib/javascript/src/transaction.ts), [Rust](lib/rust/src/transaction.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/Transaction.java).
 
@@ -310,51 +310,64 @@ See implementation for [JS](lib/javascript/src/subscription.ts), [Rust](lib/rust
 
 ## Unconfirmed
 
-This section is just theories and open questions. The Lazo findings come from a single card, the Avanza ones from eight cards.
+Theories and open questions.
 
 ### Byte 09 of a transaction
 
-On urban buses it behaves like the ordinal of the run the vehicle is on in its service day: 3-4 in the early morning, 31 around 23:30, identical for consecutive payments of one card and for an on-board top up and the ride paid in the same second; and the same value at the same hour on different days (line 31: 23 at 20:41 and 20:43, 31 at 23:31 and 23:37, three weeks apart). Unlikely the stop's position on the route (1st = 11, 5th = 8, 15th = 13) and the passenger's order at the stop (1st = 8, 13, 17, 23; 5th = 18, 23).
+On buses it's most likely which trip of the vehicle's daily duty this is, counting from 1. Avanza's GTFS names every trip `<service>__<N>`, where `N` is the trip's chronological position within one vehicle's day, and the byte matches the `N` of the trip in progress. It never exceeds the longest duty on its route, which a count of the day's trips would.
 
-On the tram the byte is something else: Avanza cards get a value that steps by one per validation (211, 212, 213 in a four second burst) and spans the whole byte, the Lazo card got 1 on every tram ride and the personal card 0 on its non-Avanza rides.
+It's incremented through the day, stays same across consecutive payments and across an on-board top up and the ride paid in the same second, repeats at the same hour on different days, and differs widely between routes at one hour. It is neither the stop's position along the route nor the passenger's order at the stop.
 
-### Route ids 152, 169 and 251
+On the tram it is something else. On Avanza balance cards it's incrementing by one per validation. On a Lazo card it's `01`. On a personal Avanza card off the Avanza network it's `00`.
 
-These three route ids are not in Avanza's feed, whose ids stop at 210. The one paid ride on 169 cost €1.25 instead of €0.55, its stop ids (5, 8963) are in neither the urban nor the tram space, and a second validation twelve minutes later was free with `00` in [04], which looks like a check-out. The interurban CTAZ buses and Cercanías are the candidates, neither publishes an accessible feed.
+### Route ids 152 and 251
 
-### Directions
+None of the three is in Avanza's feed, whose ids stop at 210, and their stop ids are not in the urban or the tram space.
 
-Terminal stations are known for the tram and buses 22 and 31 from stops that only serve one direction. Bus 35 runs Parque Goya to Seminario, but the 2013 route data lists the two rides used to test it in the same half of the route while the card gave them opposite directions, so which end is `01` is open. Bus 51 and the ring buses are untested.
+152 and 251 appear only on personal cards and are unidentified.
+
+### Cercanias
+
+Cercanías is the Renfe commuter rail that runs under the city. It charges its own fare, and a journey is a check-in and a check-out where the second validation costs nothing.
+
+Byte [04] is `00`. Byte [06] looks like the station's position along the line, counting from the far terminal stop. Byte [05] is `00` on the check-in and `23` on the check-out.
+
+Cercanías route IDs gathered so far: 169.
+
 
 ### Stop ids
 
-The urban stop id in [05-06] is a location, e.g. `8180` in both directions for bus 31, unrelated to the `PA` + number in Zaragoza pole GTFS feed. Mapped values so far:
+The urban stop id in [05-06] is scoped to the route rather than shared across the network: routes with no stop in common still use the same ids. Within one route it means a location rather than a platform, the same id appearing in both directions. No public identifier has been found. Neither the `PA` number on the stop nor the GTFS `stop_id`, nor the rank of the stop in any ordering of the pole data, nor a position along the route.
 
-| Line | 05-06 bytes | 09 byte | Pole | Name                            |
-| ---- | ----------- | ------- | ---- | ------------------------------- |
-| 22   | `81AF`      | `12`    | 676  | P. María Agustín 37             |
-| 35   | `804C`      | `11`    | 471  | Fueros de Aragón 15             |
-| 31   | `81DB`      | `0B`    | 3071 | Av. de Madrid / Aljafería       |
-| 35   | `8099`      | `09`    | 707  | Plaza Aragón 1 in the 2013 dump |
-| 31   | `807E`      | `08`    | 147  | Av. Francisco de Goya 83        |
-| 22   | `81C8`      | `0D`    | 434  | Duquesa Villahermosa 3          |
+| Line | 05-06 bytes | 09 byte | Pole | Name                      |
+| ---- | ----------- | ------- | ---- | ------------------------- |
+| 22   | `81AF`      | `12`    | 676  | P. María Agustín 37       |
+| 35   | `804C`      | `11`    | 471  | Fueros de Aragón 15       |
+| 31   | `81DB`      | `0B`    | 3071 | Av. de Madrid / Aljafería |
+| 35   | `8099`      | `09`    | 707  | Plaza Aragón 1            |
+| 31   | `807E`      | `08`    | 147  | Av. Francisco de Goya 83  |
+| 22   | `81C8`      | `0D`    | 434  | Duquesa Villahermosa 3    |
+| 30   | `802E`      | `0F`    | 430  | Doctor Iranzo N.º 61      |
+| 40   | `805D`      | `25`    | 633  | P. de la Constitución 16  |
+| Ci4  | `808F`      | `0C`    | 3030 | Av. de San José 7         |
+
+The values 1, 3, 4 and 5 appear on unrelated routes and may be placeholders.
 
 ### Block 24
 
-Empty on 5 of the 7 Avanza top up cards and on the personal card. On the other two it holds `0200`, a value that looks like [date](#date) at [02-03] repeated at [10-11], zeros, `01` at [14] and an XOR of all previous bytes at [15].
+Empty on most top up cards. On the others it's `0200`, something shaped like a [date](#date) at [02-03] repeated at [10-11], zeros, `01` at [14] and an XOR of all previous bytes at [15].
 
 ### Block 4
 
-Empty on top up cards. On the personal card it is `0600030A1204` followed by zeros: the product ids of blocks 12 and 16 (`06`, `0A`) next to their sector numbers (`03`, `04`).
+Empty on top up cards. On personal cards it's `0600030A1204` followed by zeros: the product ids of blocks 12 and 16 next to their sector numbers.
 
 ### Subscription blocks
 
-The personal card carries two products: sector 3 a 2 day product (id `06`) bought on 2025-12-03 and never used, sector 4 a 365 day pass (id `0A`) bought the same day. The pass's last usage names a ride on route id 251 and was not moved by two later Ci2 rides, so it may only log usage on the non-Avanza network; two rides are thin evidence.
+Personal cards have one product per sector in sectors 3 and 4, each with its own metadata and subscription blocks. The last usage field does not move on every journey and may only log usage on one network.
 
 ### Notes
 
-- Free journeys might have `00` in [04]
-- Top up might have `21` in the sequence byte instead of 0 to 4 in block 33
+- A top up can carry `21` in the sequence byte instead of 0 to 4
 - Before a ring has wrapped, an unused archive slot can hold `00000000000000000000000000000004` instead of all zeroes
 
 ## Implementations
