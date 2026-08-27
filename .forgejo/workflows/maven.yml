@@ -1,0 +1,150 @@
+name: Publish (Maven)
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: zgz-transport-maven-${{ forgejo.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ["publish", "hetzner"]
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        shell: >-
+          /usr/bin/env
+          -u GITHUB_TOKEN -u FORGEJO_TOKEN
+          -u ACTIONS_RUNTIME_TOKEN
+          -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL
+          -u ACTIONS_CACHE_URL -u ACTIONS_RUNTIME_URL -u ACTIONS_RESULTS_URL
+          bash --noprofile --norc -e -o pipefail {0}
+
+    env:
+      WORKSPACE: /opt/zgz-transport-maven
+      PACKAGE_DIR: lib/java
+      JAVA_HOME: /opt/jdk
+      GNUPGHOME: /tmp/gnupg
+      MAVEN_OPTS: -Dstyle.color=never
+      JDK_RELEASE: "jdk-21.0.12.1+1"
+      JDK_ARCHIVE: OpenJDK21U-jdk_x64_linux_hotspot_21.0.12.1_1.tar.gz
+      JDK_SHA256: ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94
+
+    steps:
+      - name: Verify CI environment
+        run: |
+          leaked=$(env | grep -iE '(TOKEN|SECRET|PASSWORD|CREDENTIAL|KEY)=.' || true)
+          [ -z "$leaked" ] || { echo "FATAL: privileged credential reachable by build code:"; echo "$leaked" | sed 's/=.*/=<redacted>/'; exit 1; }
+
+      - name: Check out
+        run: |
+          : "${WORKSPACE:?}"
+          rm -rf "$WORKSPACE"
+          mkdir -p "$WORKSPACE"
+          cd "$WORKSPACE"
+
+          git init -q .
+          git remote add origin "$FORGEJO_SERVER_URL/$FORGEJO_REPOSITORY.git"
+          git fetch -q --depth 1 origin "$FORGEJO_REF"
+          git checkout -q FETCH_HEAD
+          [ -z "$FORGEJO_SHA" ] || [ "$(git rev-parse HEAD)" = "$FORGEJO_SHA" ] \
+            || { echo "FATAL: ref moved since the run was queued (want $FORGEJO_SHA, got $(git rev-parse HEAD))"; exit 1; }
+          echo "publishing $FORGEJO_REF at $(git rev-parse HEAD)"
+
+      - name: Install system packages
+        run: |
+          missing=()
+          command -v gpg >/dev/null 2>&1 || missing+=(gnupg)
+          command -v unzip >/dev/null 2>&1 || missing+=(unzip)
+          if [ ${#missing[@]} -gt 0 ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -y
+            apt-get install -y --no-install-recommends "${missing[@]}"
+          fi
+          command -v unzip >/dev/null || { echo "FATAL: unzip is required; without it the Maven wrapper downloads the tar.gz and the pinned zip checksum cannot match"; exit 1; }
+
+      - name: Install the pinned JDK
+        run: |
+          curl -fsSLo /tmp/jdk.tar.gz \
+            "https://github.com/adoptium/temurin21-binaries/releases/download/${JDK_RELEASE//+/%2B}/${JDK_ARCHIVE}"
+          echo "${JDK_SHA256}  /tmp/jdk.tar.gz" | sha256sum -c -
+          rm -rf "$JAVA_HOME"
+          mkdir -p "$JAVA_HOME"
+          tar xzf /tmp/jdk.tar.gz -C "$JAVA_HOME" --strip-components=1
+          echo "$JAVA_HOME/bin" >> "$GITHUB_PATH"
+          "$JAVA_HOME/bin/java" -version
+
+      - name: Check
+        run: |
+          cd "$WORKSPACE/$PACKAGE_DIR"
+          ./mvnw -B --no-transfer-progress verify
+
+      - name: Sign and stage the release
+        env:
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_GPG_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          : "${MAVEN_GPG_KEY:?}" "${MAVEN_GPG_PASSPHRASE:?}"
+          cd "$WORKSPACE/$PACKAGE_DIR"
+
+          rm -rf "$GNUPGHOME"
+          mkdir -m 700 -p "$GNUPGHOME"
+          echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
+          printf '%s' "$MAVEN_GPG_KEY" | gpg --batch --quiet --import
+          gpg --batch --list-secret-keys --keyid-format LONG | sed -n '1,4p'
+
+          printf '%s\n' \
+            '<settings><servers><server>' \
+            '<id>central</id>' \
+            '<username>${env.MAVEN_CENTRAL_USERNAME}</username>' \
+            '<password>${env.MAVEN_CENTRAL_PASSWORD}</password>' \
+            '</server></servers></settings>' > /tmp/settings-central.xml
+
+          ./mvnw -B --no-transfer-progress -s /tmp/settings-central.xml -Pcentral -DskipTests \
+            -DskipPublishing=true deploy
+
+      - name: Publish to the Forgejo package registry
+        env:
+          FORGEJO_PACKAGES_TOKEN: ${{ secrets.FORGEJO_PACKAGES_TOKEN }}
+        run: |
+          : "${FORGEJO_PACKAGES_TOKEN:?}"
+          cd "$WORKSPACE/$PACKAGE_DIR"
+
+          coordinate() {
+            ./mvnw -B -q --no-transfer-progress help:evaluate -Dexpression="$1" -DforceStdout
+          }
+          group=$(coordinate project.groupId)
+          artifact=$(coordinate project.artifactId)
+          version=$(coordinate project.version)
+          registry="$FORGEJO_SERVER_URL/api/packages/hloth/maven"
+          jar="$registry/${group//.//}/$artifact/$version/$artifact-$version.jar"
+
+          if curl -sfI -H "Authorization: token $FORGEJO_PACKAGES_TOKEN" "$jar" >/dev/null; then
+            echo "$artifact $version is already in the Forgejo registry, which refuses to overwrite it; skipping"
+            exit 0
+          fi
+
+          printf '%s\n' \
+            '<settings><servers><server>' \
+            '<id>forgejo</id>' \
+            '<username>hloth</username>' \
+            '<password>${env.FORGEJO_PACKAGES_TOKEN}</password>' \
+            '</server></servers></settings>' > /tmp/settings-forgejo.xml
+          ./mvnw -B --no-transfer-progress -s /tmp/settings-forgejo.xml -Pforgejo -DskipTests deploy
+
+      - name: Publish to Maven Central
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          : "${MAVEN_CENTRAL_USERNAME:?}" "${MAVEN_CENTRAL_PASSWORD:?}" "${MAVEN_GPG_PASSPHRASE:?}"
+          cd "$WORKSPACE/$PACKAGE_DIR"
+          ./mvnw -B --no-transfer-progress -s /tmp/settings-central.xml -Pcentral -DskipTests deploy
+
+      - name: Clean up the signing key
+        if: always()
+        run: rm -rf /tmp/gnupg /tmp/settings-central.xml /tmp/settings-forgejo.xml

@@ -35,8 +35,9 @@ Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date
 		- [Subscription blocks](#subscription-blocks)
 		- [Notes](#notes)
 	- [Implementations](#implementations)
-		- [JavaScript/TypeScript](#javascripttypescript)
+		- [JavaScript, TypeScript](#javascript-typescript)
 		- [Rust](#rust)
+		- [Java, Kotlin](#java-kotlin)
 	- [Contributing](#contributing)
 	- [See also](#see-also)
 	- [Acknowledgements](#acknowledgements)
@@ -185,7 +186,7 @@ Two bytes, read as 16 bits:
 
 `34 4E` = `0011010 0010 01110` = 2026-02-14.
 
-See implementation for [JS](lib/javascript/src/date.ts), [Rust](lib/rust/src/date.rs).
+See implementation for [JS](lib/javascript/src/date.ts), [Rust](lib/rust/src/date.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/CardDate.java).
 
 ### Card ID
 
@@ -194,7 +195,7 @@ See implementation for [JS](lib/javascript/src/date.ts), [Rust](lib/rust/src/dat
 - [05-14] zero
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/id.ts), [Rust](lib/rust/src/id.rs).
+See implementation for [JS](lib/javascript/src/id.ts), [Rust](lib/rust/src/id.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/CardId.java).
 
 ### Card type
 
@@ -213,7 +214,7 @@ Block 1 says which product a card is:
 
 Top up cards pay for each journey out of a [balance](#balance); personal cards use a [subscription](#subscription) and never change balance.
 
-See implementation for [JS](lib/javascript/src/type.ts), [Rust](lib/rust/src/card_type.rs).
+See implementation for [JS](lib/javascript/src/type.ts), [Rust](lib/rust/src/card_type.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/CardType.java).
 
 ### Balance
 
@@ -226,7 +227,7 @@ Blocks 8 and 9, identical, in the MIFARE value block format. €1.00 = 1000 unit
 
 €5.00 is `8813000077ECFFFF8813000002FD02FD`. Personal unlimited cards always hold zero: `00000000FFFFFFFF0000000002FD02FD`.
 
-See implementation for [JS](lib/javascript/src/balance.ts), [Rust](lib/rust/src/balance.rs).
+See implementation for [JS](lib/javascript/src/balance.ts), [Rust](lib/rust/src/balance.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/Balance.java).
 
 ### Transaction log
 
@@ -248,7 +249,7 @@ A journey subtracts the amount from the balance, a top up adds it. A journey wit
 
 Known directions: on the tram `01` runs south to Mago de Oz and `02` north to Avenida de la Academia; on bus 31 `02` runs to Puerto Venecia and `01` to Aljafería; on bus 22 `02` runs to Las Fuentes and `01` to Bombarda. Other lines: see [directions](#directions).
 
-See implementation for [JS](lib/javascript/src/transaction.ts), [Rust](lib/rust/src/transaction.rs).
+See implementation for [JS](lib/javascript/src/transaction.ts), [Rust](lib/rust/src/transaction.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/Transaction.java).
 
 ### Journey summary (block 10)
 
@@ -279,7 +280,7 @@ A free transfer onto the tram 33 minutes after a paid ride on bus 31, block 5 ab
     ?1 = byte 01             ?9 = byte 09                  xr = XOR
 ```
 
-See implementation for [JS](lib/javascript/src/journey-summary.ts), [Rust](lib/rust/src/journey_summary.rs).
+See implementation for [JS](lib/javascript/src/journey-summary.ts), [Rust](lib/rust/src/journey_summary.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/JourneySummary.java).
 
 ### Subscription metadata
 
@@ -293,7 +294,7 @@ Blocks 12 and 16 on personal cards, one product per sector. Still [work in progr
 - [10-14] Unknown, appears to always be `0021000000`
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/subscription-metadata.ts), [Rust](lib/rust/src/subscription_metadata.rs).
+See implementation for [JS](lib/javascript/src/subscription-metadata.ts), [Rust](lib/rust/src/subscription_metadata.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/SubscriptionMetadata.java).
 
 ### Subscription
 
@@ -306,7 +307,7 @@ Blocks 13 and 14 (a copy) for the product of block 12, blocks 17 and 18 for the 
 - [10-11] [Date](#date) of the last usage, [12] hour, [13] minute, [14] second
 - [15] XOR of all previous bytes
 
-See implementation for [JS](lib/javascript/src/subscription.ts), [Rust](lib/rust/src/subscription.rs).
+See implementation for [JS](lib/javascript/src/subscription.ts), [Rust](lib/rust/src/subscription.rs), [Java](lib/java/src/main/java/dev/hloth/zgztransport/Subscription.java).
 
 ## Unconfirmed
 
@@ -360,28 +361,23 @@ The personal card carries two products: sector 3 a 2 day product (id `06`) bough
 
 ## Implementations
 
-### JavaScript/TypeScript
+### JavaScript, TypeScript
 
-[lib/javascript](lib/javascript) decodes and encodes every structure above and whole dumps of either card (`decodeCard`). Published on [npm](https://www.npmjs.com/package/zgz-transport) as `zgz-transport` and on [JSR](https://jsr.io/@hloth/zgz-transport) as `@hloth/zgz-transport`:
+[lib/javascript](lib/javascript) is the spec implementation library in JavaScript/TypeScript. Zero dependencies, compatible with Node.js >= 25, Bun, Deno and 2025 browsers, MIT License. The package is published on [npm](https://www.npmjs.com/package/zgz-transport) as `zgz-transport` and on [JSR](https://jsr.io/@hloth/zgz-transport) as `@hloth/zgz-transport`.
 
-```bash
-bun add zgz-transport
-# npm install zgz-transport
-# pnpm add zgz-transport
-# bunx jsr add @hloth/zgz-transport
-```
-
-Start from [index.ts](lib/javascript/src/index.ts).
+Start from [src/index.ts](lib/javascript/src/index.ts).
 
 ### Rust
 
-[lib/rust](lib/rust) is the same library in Rust, `no_std` with `alloc`. Published on [crates.io](https://crates.io/crates/zgz-transport) as `zgz-transport`:
+[lib/rust](lib/rust) is the spec implementation library in Rust. Zero dependencies, `no_std` with `alloc`, MIT License. The crate is published on [crates.io](https://crates.io/crates/zgz-transport) as `zgz-transport`.
 
-```bash
-cargo add zgz-transport
-```
+Start from [src/lib.rs](lib/rust/src/lib.rs).
 
-Start from [lib.rs](lib/rust/src/lib.rs).
+### Java, Kotlin
+
+[lib/java](lib/java) is the spec implementation library in Java 17. Zero dependencies, usable from Java, Kotlin and Android, MIT License. The library is published on [Maven Central](https://central.sonatype.com/artifact/dev.hloth/zgz-transport) as `dev.hloth:zgz-transport`.
+
+Start from [src/main/java/dev/hloth/zgztransport/Card.java](lib/java/src/main/java/dev/hloth/zgztransport/Card.java).
 
 ## Contributing
 

@@ -10,3 +10,5 @@ lib/javascript/test/subscription.test.ts
 lib/javascript/test/subscription-metadata.test.ts
 
 lib/rust/target
+
+lib/java/target
