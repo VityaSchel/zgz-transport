@@ -92,7 +92,7 @@ Transaction ride = Transaction.builder()
 		.stop(new Stop.Urban(500))
 		.route(new Route(31))
 		.kind(new TransactionKind.Journey(Direction.TWO))
-		.runCounter(7)
+		.dutyTrip(7)
 		.createdAt(CardDateTime.of(2026, 8, 26, 9, 41, 27))
 		.sequence(1)
 		.build();
