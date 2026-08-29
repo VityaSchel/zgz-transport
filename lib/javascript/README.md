@@ -75,7 +75,7 @@ const block5 = encodeTransaction({
 	route: 31,
 	kind: "journey",
 	direction: 2,
-	runCounter: 7,
+	dutyTrip: 7,
 	createdAt: { year: 2026, month: 8, day: 26, hour: 9, minute: 41, second: 27 },
 	sequence: 1,
 });
