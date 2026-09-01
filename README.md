@@ -4,6 +4,7 @@
 ](https://crates.io/crates/zgz-transport) [![Maven Central Version](https://img.shields.io/maven-central/v/dev.hloth/zgz-transport?style=flat-square&logo=apache-maven&logoColor=%23f18900&label=%20&color=%2327282c)
 ](https://central.sonatype.com/artifact/dev.hloth/zgz-transport)
 
+**See also: [Zaragoza Tarjeta Bus Android App](https://git.hloth.dev/hloth/zaragoza-tarjeta-bus-android)**
 
 > [!IMPORTANT]
 > ⚠️ **Aviso legal:** Este repositorio es un proyecto de investigación de seguridad independiente. \
@@ -44,7 +45,6 @@ Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date
 		- [Rust](#rust)
 		- [Java, Kotlin](#java-kotlin)
 	- [Contributing](#contributing)
-	- [See also](#see-also)
 	- [Acknowledgements](#acknowledgements)
 	- [License](#license)
 	- [Donate](#donate)
@@ -403,10 +403,6 @@ The spreadsheet with publicly disclosed dumps and highlights:
 <a href="https://docs.google.com/spreadsheets/d/1g89saB1URWRZLWsEJm44vJFTosIDfPkh5u8pfxPWGD0/edit">
 	<img alt="Spreadsheet" src="https://git.hloth.dev/hloth/zgz-transport/raw/branch/main/docs/spreadsheet.avif" width="600" />
 </a>
-
-## See also
-
-- [ZGZ Avanza Card Android App](https://git.hloth.dev/hloth/zgz-transport-card-android)
 
 ## Acknowledgements
 
