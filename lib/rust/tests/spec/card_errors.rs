@@ -77,7 +77,7 @@ fn reports_the_first_fault_in_block_order() {
 
 #[test]
 fn propagates_product_block_errors() {
-	let mut dump = card_with_products(CardType::AvanzaPersonalUnlimited, &[3]);
+	let mut dump = card_with_products(CardType::AvanzaPersonal, &[3]);
 	dump[14 * BLOCK_SIZE - 1] ^= 1;
 	assert!(matches!(Card::decode(&dump), Err(Error::Checksum { .. })));
 }

@@ -32,7 +32,8 @@ public final class TransactionLog {
 	 *
 	 * @param sequence
 	 *            the sequence byte of the record
-	 * @return the block number, or empty when the byte is not one the ring uses
+	 * @return the block number, or empty when the sequence is not {@code 0} to
+	 *         {@code 4}, as the {@code 0x21} some top ups carry is not
 	 */
 	public static OptionalInt archiveBlock(int sequence) {
 		return sequence >= 0 && sequence < ARCHIVE_BLOCKS.size()

@@ -6,8 +6,12 @@ export const LIVE_BLOCK = 5;
 /** Blocks holding the five transactions before the newest, indexed by sequence. */
 export const ARCHIVE_BLOCKS = [28, 29, 30, 32, 33] as const;
 
-/** Block a record moves to when a newer one replaces it, by its sequence byte. */
-export const archiveBlock = (sequence: number) => ARCHIVE_BLOCKS[sequence];
+/**
+ * Block a record moves to when a newer one replaces it, by its sequence byte.
+ * @returns `undefined` when the sequence is not `0` to `4`, as the `0x21` some top ups carry is.
+ */
+export const archiveBlock = (sequence: number): number | undefined =>
+	ARCHIVE_BLOCKS[sequence];
 
 const holdsRecord = (block: Uint8Array) => !isZero(block) && block[0] !== 0;
 

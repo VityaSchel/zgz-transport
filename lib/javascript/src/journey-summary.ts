@@ -8,7 +8,6 @@ import {
 } from "./bytes.ts";
 import { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
 import type { Direction } from "./transaction.ts";
-import { cardTypeByte, cardTypeFromByte, type CardTypeName } from "./type.ts";
 
 /** Block 10 of a top up card, rewritten on every journey and untouched by top ups. */
 export type JourneySummary = {
@@ -18,8 +17,11 @@ export type JourneySummary = {
 	lastPaidAt: Date16Bit & { hour: number; minute: number };
 	/** Same as byte 4 of the current transaction. */
 	consecutivePayments: number;
-	/** Product of the card. */
-	cardType: CardTypeName;
+	/**
+	 * Byte 7: the product that paid for the journey, the subscription product id on a personal
+	 * card and the card type's first byte on a top up card.
+	 */
+	productId: number;
 	/** Whether the current journey was a free transfer. */
 	free: boolean;
 	/** Route id of the current journey. */
@@ -30,7 +32,10 @@ export type JourneySummary = {
 	transfersLeft: number;
 };
 
-/** The constant block 10 of personal cards. */
+/**
+ * The block 10 stamp of one personal card, its only non-zero byte [07] a product id. Another
+ * personal card keeps block 10 all zero, so neither value can be relied on.
+ */
 export const PERSONAL_JOURNEY_SUMMARY: Uint8Array = Uint8Array.fromHex(
 	"000000000000000A000000000000000A",
 );
@@ -69,7 +74,7 @@ export function decodeJourneySummary(block: Uint8Array): JourneySummary {
 			minute: block[5]!,
 		},
 		consecutivePayments: block[6]!,
-		cardType: cardTypeFromByte(block[7]!),
+		productId: block[7]!,
 		free: block[8] === 1,
 		route: block[9]!,
 		direction: direction(block[10]!, "direction"),
@@ -82,6 +87,7 @@ export function encodeJourneySummary(summary: JourneySummary): Uint8Array {
 	assertInRange("hour", summary.lastPaidAt.hour, 0, 23);
 	assertInRange("minute", summary.lastPaidAt.minute, 0, 59);
 	assertInRange("consecutive payments", summary.consecutivePayments, 0, 0xff);
+	assertInRange("product id", summary.productId, 0, 0xff);
 	assertInRange("route", summary.route, 0, 0xff);
 	assertInRange("transfers left", summary.transfersLeft, 0, 0xff);
 	const block = new Uint8Array(BLOCK_SIZE);
@@ -94,7 +100,7 @@ export function encodeJourneySummary(summary: JourneySummary): Uint8Array {
 	block[4] = summary.lastPaidAt.hour;
 	block[5] = summary.lastPaidAt.minute;
 	block[6] = summary.consecutivePayments;
-	block[7] = cardTypeByte(summary.cardType);
+	block[7] = summary.productId;
 	block[8] = summary.free ? 1 : 0;
 	block[9] = summary.route;
 	block[10] = summary.direction;

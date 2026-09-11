@@ -16,7 +16,12 @@ public enum CardType implements Encodable {
 	 * A personal Avanza Tarjeta Bus, which travels on a subscription and never
 	 * spends.
 	 */
-	AVANZA_PERSONAL_UNLIMITED(0x0a_97_75, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
+	AVANZA_PERSONAL(0x0a_97_75, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
+	/**
+	 * A personal Avanza Tarjeta Bus printed "Abono de transporte". What separates it
+	 * from {@link #AVANZA_PERSONAL} is unknown; both behave the same here.
+	 */
+	AVANZA_PERSONAL_ABONO(0x0a_98_da, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
 	/** A balance top up Lazo card. */
 	LAZO_TOP_UP(0x0d_37_1f, Chip.CLASSIC_4K, List.of(), true, Keys.LAZO);
 
@@ -45,16 +50,6 @@ public enum CardType implements Encodable {
 	}
 
 	/**
-	 * The first byte of the product, which transactions and the journey summary
-	 * carry.
-	 *
-	 * @return byte 0 of block 1
-	 */
-	public int firstByte() {
-		return value >> 16;
-	}
-
-	/**
 	 * The chip this product comes on.
 	 *
 	 * @return the chip
@@ -76,13 +71,22 @@ public enum CardType implements Encodable {
 
 	/**
 	 * Whether cards of this product rewrite block 10 on every journey. A product
-	 * that travels on a subscription leaves a constant there instead, which
-	 * {@link JourneySummary#decode(byte[])} rejects.
+	 * that travels on a subscription does not maintain it, see
+	 * {@link JourneySummary#personalBlock()}.
 	 *
 	 * @return true when block 10 holds a journey summary
 	 */
 	public boolean recordsJourneySummary() {
 		return recordsJourneySummary;
+	}
+
+	/**
+	 * Whether cards of this product travel on a subscription rather than a balance.
+	 *
+	 * @return true on a personal product
+	 */
+	public boolean isPersonal() {
+		return this == AVANZA_PERSONAL || this == AVANZA_PERSONAL_ABONO;
 	}
 
 	/**
@@ -101,24 +105,6 @@ public enum CardType implements Encodable {
 			}
 		}
 		throw new CardFormatException("unknown card type " + String.format("%06x", value & 0xff_ff_ff));
-	}
-
-	/**
-	 * The product whose first byte is the one given, as transactions carry it.
-	 *
-	 * @param firstByte
-	 *            byte 0 of a transaction or of the journey summary
-	 * @return the product
-	 * @throws CardFormatException
-	 *             if no known product starts with that byte
-	 */
-	public static CardType ofFirstByte(int firstByte) {
-		for (CardType type : values()) {
-			if (type.firstByte() == firstByte) {
-				return type;
-			}
-		}
-		throw new CardFormatException("unknown card type byte " + firstByte);
 	}
 
 	/**
@@ -157,7 +143,7 @@ public enum CardType implements Encodable {
 	 * carries.
 	 *
 	 * <p>
-	 * Sectors 0 to 8 hold the same keys on both Avanza products, so either of them
+	 * Sectors 0 to 8 hold the same keys on every Avanza product, so any of them
 	 * opens an Avanza card before block 1 has been read.
 	 *
 	 * @param sector

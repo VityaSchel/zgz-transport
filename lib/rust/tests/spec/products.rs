@@ -34,10 +34,11 @@ fn keeps_products_in_their_sectors() {
 			.unwrap()
 			.products
 	};
-	let personal = CardType::AvanzaPersonalUnlimited;
-	assert_eq!(products(personal, &[]), [None, None]);
-	assert_eq!(products(personal, &[3]), [product, None]);
-	assert_eq!(products(personal, &[4]), [None, product]);
-	assert_eq!(products(personal, &[3, 4]), [product, product]);
+	for personal in [CardType::AvanzaPersonal, CardType::AvanzaPersonalAbono] {
+		assert_eq!(products(personal, &[]), [None, None]);
+		assert_eq!(products(personal, &[3]), [product, None]);
+		assert_eq!(products(personal, &[4]), [None, product]);
+		assert_eq!(products(personal, &[3, 4]), [product, product]);
+	}
 	assert_eq!(products(CardType::AvanzaTopUp, &[3, 4]), [None, None]);
 }

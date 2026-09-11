@@ -12,7 +12,11 @@ import {
 	type SubscriptionMetadata,
 } from "./subscription-metadata.ts";
 import type { Transaction } from "./transaction.ts";
-import { decodeCardType, type CardTypeName } from "./type.ts";
+import {
+	decodeCardType,
+	isPersonalCardType,
+	type CardTypeName,
+} from "./type.ts";
 
 /** MIFARE Classic variant, told apart by the SAK byte in block 0. */
 export type Chip = "1K" | "4K";
@@ -31,7 +35,7 @@ export type Card = {
 	chip: Chip;
 	/** Upper case hex, 4 bytes on 1K and 7 bytes on 4K chips. */
 	uid: string;
-	/** Product from block 1. */
+	/** Card type from block 1. */
 	type: CardTypeName;
 	/** Printed card id from block 2, e.g. `BE322743`. */
 	id: string;
@@ -77,7 +81,7 @@ export function decodeCard(dump: Uint8Array): Card {
 		throw new Error("balance blocks 8 and 9 differ");
 	}
 	const type = decodeCardType(block(1));
-	const personal = type === "AvanzaPersonalUnlimited";
+	const personal = isPersonalCardType(type);
 	return {
 		chip,
 		uid: block(0).subarray(0, UID_LENGTHS[chip]).toHex().toUpperCase(),

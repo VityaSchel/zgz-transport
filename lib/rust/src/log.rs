@@ -17,7 +17,8 @@ impl Transaction {
 		[Self::LIVE_BLOCK, a, b, c, d, e]
 	};
 
-	/// Block a record moves to when a newer one replaces it, by its sequence byte.
+	/// Block a record moves to when a newer one replaces it, by its sequence byte. `None` past
+	/// sequence 4, which the `0x21` of some top ups exceeds.
 	#[must_use]
 	pub fn archive_block(sequence: u8) -> Option<usize> {
 		Self::ARCHIVE_BLOCKS.get(usize::from(sequence)).copied()

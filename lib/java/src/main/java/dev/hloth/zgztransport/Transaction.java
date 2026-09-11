@@ -7,8 +7,10 @@ import java.util.Optional;
  * One record of the transaction log: a journey or a top up, with where and when
  * it happened.
  *
- * @param cardType
- *            the product of the card that made it
+ * @param productId
+ *            byte 0, the product that paid for the journey: the subscription
+ *            product id on a personal card, the first byte of the
+ *            {@link CardType} on a top up card
  * @param networkFlag
  *            byte 1, {@code 0} on top up cards and {@code 1} or {@code 2} on
  *            personal ones
@@ -31,10 +33,10 @@ import java.util.Optional;
  *            when the card wrote the record
  * @param sequence
  *            {@code 0} to {@code 4}, which picks the archive block the record
- *            moves to
+ *            moves to; a top up can carry {@code 0x21} instead
  */
-public record Transaction(CardType cardType, int networkFlag, int amount, int consecutivePayments, Stop stop,
-		Route route, TransactionKind kind, int dutyTrip, CardDateTime createdAt, int sequence) implements Encodable {
+public record Transaction(int productId, int networkFlag, int amount, int consecutivePayments, Stop stop, Route route,
+		TransactionKind kind, int dutyTrip, CardDateTime createdAt, int sequence) implements Encodable {
 
 	/**
 	 * Checks the ranges of the numeric fields and that the others are present.
@@ -45,11 +47,11 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	 *             if a field is null
 	 */
 	public Transaction {
-		Objects.requireNonNull(cardType, "cardType");
 		Objects.requireNonNull(stop, "stop");
 		Objects.requireNonNull(route, "route");
 		Objects.requireNonNull(kind, "kind");
 		Objects.requireNonNull(createdAt, "createdAt");
+		Bytes.checkRange("productId", productId, 0, 0xff);
 		Bytes.checkRange("networkFlag", networkFlag, 0, 0xff);
 		Bytes.checkRange("amount", amount, 0, 0xffff);
 		Bytes.checkRange("consecutivePayments", consecutivePayments, 0, 0xff);
@@ -64,16 +66,14 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	 *            the sixteen bytes
 	 * @return the transaction
 	 * @throws CardFormatException
-	 *             if the block is not sixteen bytes, no known product starts with
-	 *             byte 0, the timestamp is out of range, or byte 8 is neither a
-	 *             direction nor a top up
+	 *             if the block is not sixteen bytes, the timestamp is out of range,
+	 *             or byte 8 is neither a direction nor a top up
 	 */
 	public static Transaction decode(byte[] block) {
 		Bytes.block(block, "transaction block");
 		Route route = new Route(Bytes.u8(block[7]));
-		CardType cardType = CardType.ofFirstByte(Bytes.u8(block[0]));
 		CardDateTime createdAt = CardDateTime.decode(new byte[]{block[10], block[11], block[12], block[13], block[14]});
-		return new Transaction(cardType, Bytes.u8(block[1]), Bytes.u16(block, 2), Bytes.u8(block[4]),
+		return new Transaction(Bytes.u8(block[0]), Bytes.u8(block[1]), Bytes.u16(block, 2), Bytes.u8(block[4]),
 				Stop.decode(new byte[]{block[5], block[6]}, route), route, TransactionKind.ofValue(Bytes.u8(block[8])),
 				Bytes.u8(block[9]), createdAt, Bytes.u8(block[15]));
 	}
@@ -85,7 +85,7 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	 */
 	public byte[] encode() {
 		byte[] block = new byte[Bytes.BLOCK_SIZE];
-		block[0] = (byte) cardType.firstByte();
+		block[0] = (byte) productId;
 		block[1] = (byte) networkFlag;
 		Bytes.write(block, 2, amount, 2);
 		block[4] = (byte) consecutivePayments;
@@ -108,8 +108,8 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	}
 
 	/**
-	 * Whether this is a ride that cost nothing. Every journey on a personal
-	 * unlimited card is free.
+	 * Whether this is a ride that cost nothing. Every journey on a personal card is
+	 * free.
 	 *
 	 * @return true when this is a journey of amount zero
 	 */
@@ -122,10 +122,15 @@ public record Transaction(CardType cardType, int networkFlag, int amount, int co
 	 * which the operator grants once per ride, to another route, within 60 minutes
 	 * on the urban network and 75 when a CTAZ card enters Zaragoza.
 	 *
-	 * @return true when this is a free journey carrying a payment counter
+	 * <p>
+	 * The network flag tells the two kinds of card apart: zero on every balance
+	 * record seen, non-zero on every personal one.
+	 *
+	 * @return true when this is a free journey carrying a payment counter, made by
+	 *         a card that pays from its balance
 	 */
 	public boolean isTransfer() {
-		return isFree() && consecutivePayments > 0 && cardType != CardType.AVANZA_PERSONAL_UNLIMITED;
+		return isFree() && consecutivePayments > 0 && networkFlag == 0;
 	}
 
 	/**

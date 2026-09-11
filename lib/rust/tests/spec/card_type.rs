@@ -2,11 +2,12 @@ use zgz_transport::{CardType, Error};
 
 use crate::hex::array;
 
-const CASES: [(CardType, &str); 3] = [
+const CASES: [(CardType, &str); 4] = [
 	(CardType::AvanzaTopUp, "02699F000000000000000000000000F4"),
+	(CardType::AvanzaPersonal, "0A9775000000000000000000000000E8"),
 	(
-		CardType::AvanzaPersonalUnlimited,
-		"0A9775000000000000000000000000E8",
+		CardType::AvanzaPersonalAbono,
+		"0A98DA00000000000000000000000048",
 	),
 	(CardType::LazoTopUp, "0D371F00000000000000000000000025"),
 ];
@@ -26,16 +27,23 @@ fn encodes_card_types() {
 }
 
 #[test]
-fn maps_the_first_byte_to_the_type() {
+fn maps_values_to_types() {
+	assert_eq!(CardType::ALL, CASES.map(|(card_type, _)| card_type));
 	for (card_type, _) in CASES {
-		assert_eq!(CardType::from_byte(card_type.byte()), Ok(card_type));
 		assert_eq!(CardType::from_value(card_type.value()), Ok(card_type));
 	}
 	assert_eq!(
-		CardType::from_byte(0x03),
-		Err(Error::UnknownCardTypeByte(3))
+		CardType::from_value(0x0a_98_db),
+		Err(Error::UnknownCardType(0x0a_98_db))
 	);
-	assert_eq!(CardType::ALL.map(CardType::byte), [0x02, 0x0a, 0x0d]);
+}
+
+#[test]
+fn tells_personal_types_from_top_up_ones() {
+	assert_eq!(
+		CardType::ALL.map(CardType::is_personal),
+		[false, true, true, false]
+	);
 }
 
 #[test]

@@ -1,19 +1,32 @@
 import { expect, it } from "bun:test";
 import {
-	cardTypeByte,
-	cardTypeFromByte,
 	decodeCardType,
 	encodeCardType,
+	isPersonalCardType,
 	type CardTypeName,
 } from "../src/type.ts";
 
-const cases: { type: CardTypeName; encoded: string }[] = [
-	{ type: "AvanzaTopUp", encoded: "02699F000000000000000000000000F4" },
+const cases: { type: CardTypeName; encoded: string; personal: boolean }[] = [
 	{
-		type: "AvanzaPersonalUnlimited",
-		encoded: "0A9775000000000000000000000000E8",
+		type: "AvanzaTopUp",
+		encoded: "02699F000000000000000000000000F4",
+		personal: false,
 	},
-	{ type: "LazoTopUp", encoded: "0D371F00000000000000000000000025" },
+	{
+		type: "AvanzaPersonal",
+		encoded: "0A9775000000000000000000000000E8",
+		personal: true,
+	},
+	{
+		type: "AvanzaPersonalAbono",
+		encoded: "0A98DA00000000000000000000000048",
+		personal: true,
+	},
+	{
+		type: "LazoTopUp",
+		encoded: "0D371F00000000000000000000000025",
+		personal: false,
+	},
 ];
 
 it("decodes card types", () => {
@@ -28,8 +41,14 @@ it("encodes card types", () => {
 	}
 });
 
-it("maps the first byte to the type", () => {
-	for (const { type } of cases) {
-		expect(cardTypeFromByte(cardTypeByte(type))).toBe(type);
+it("tells personal card types from balance ones", () => {
+	for (const { type, personal } of cases) {
+		expect(isPersonalCardType(type)).toBe(personal);
 	}
+});
+
+it("rejects an unknown card type", () => {
+	expect(() =>
+		decodeCardType(Uint8Array.fromHex("0A98DB00000000000000000000000049")),
+	).toThrow("unknown card type");
 });

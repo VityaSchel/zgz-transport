@@ -20,14 +20,17 @@ class SectorKeysTest {
 		Optional<SectorKeys> unused = keys("A0A1A2A3A4A5", "B0B1B2B3B4B5");
 		for (int sector = 0; sector <= 8; sector++) {
 			assertEquals(operator, CardType.AVANZA_TOP_UP.keys(sector));
-			assertEquals(operator, CardType.AVANZA_PERSONAL_UNLIMITED.keys(sector));
+			assertEquals(operator, CardType.AVANZA_PERSONAL.keys(sector));
+			assertEquals(operator, CardType.AVANZA_PERSONAL_ABONO.keys(sector));
 		}
 		for (int sector = 9; sector <= 15; sector++) {
 			assertEquals(unused, CardType.AVANZA_TOP_UP.keys(sector));
-			assertEquals(operator, CardType.AVANZA_PERSONAL_UNLIMITED.keys(sector));
+			assertEquals(operator, CardType.AVANZA_PERSONAL.keys(sector));
+			assertEquals(operator, CardType.AVANZA_PERSONAL_ABONO.keys(sector));
 		}
 		assertEquals(Optional.empty(), CardType.AVANZA_TOP_UP.keys(16));
-		assertEquals(Optional.empty(), CardType.AVANZA_PERSONAL_UNLIMITED.keys(16));
+		assertEquals(Optional.empty(), CardType.AVANZA_PERSONAL.keys(16));
+		assertEquals(Optional.empty(), CardType.AVANZA_PERSONAL_ABONO.keys(16));
 	}
 
 	@Test

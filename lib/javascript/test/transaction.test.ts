@@ -6,7 +6,7 @@ import {
 	isFree,
 	isTransfer,
 } from "../src/transaction.ts";
-import { transactions } from "./fixtures/transactions.ts";
+import { personalJourney, transactions } from "./fixtures/transactions.ts";
 
 it("decodes transactions", () => {
 	for (const { encoded, decoded } of transactions) {
@@ -54,11 +54,20 @@ it("tells a transfer from a check-out", () => {
 	]);
 });
 
-it("does not call an unlimited pass journey a transfer", () => {
-	const pass = decodeTransaction(
-		Uint8Array.fromHex("0A0200000180010C021134590F1A0302"),
-	);
-	expect([isFree(pass), isTransfer(pass)]).toEqual([true, false]);
+it("does not call a personal card journey a transfer", () => {
+	const journey = decodeTransaction(encodeTransaction(personalJourney));
+	expect(journey).toEqual(personalJourney);
+	expect([isFree(journey), isTransfer(journey), isCheckOut(journey)]).toEqual([
+		true,
+		false,
+		false,
+	]);
+});
+
+it("keeps a product id that is no card type's first byte", () => {
+	const block = encodeTransaction(personalJourney);
+	expect(block[0]).toBe(0x06);
+	expect(decodeTransaction(block).productId).toBe(0x06);
 });
 
 it("rejects an unknown kind byte", () => {

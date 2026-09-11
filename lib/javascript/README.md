@@ -67,7 +67,7 @@ import { encodeBalance, encodeTransaction } from "zgz-transport";
 
 const block8 = encodeBalance(4450);
 const block5 = encodeTransaction({
-	cardType: "AvanzaTopUp",
+	productId: 0x02,
 	networkFlag: 0,
 	amount: 550,
 	consecutivePayments: 1,

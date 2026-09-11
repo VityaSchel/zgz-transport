@@ -39,7 +39,6 @@ fn displays_every_variant() {
 			Error::UnknownCardType(0x0b_69_9f),
 			"unknown card type b699f",
 		),
-		(Error::UnknownCardTypeByte(11), "unknown card type byte 11"),
 		(Error::Direction(3), "direction must be 1 or 2, got 3"),
 		(
 			Error::TransactionKind(0),

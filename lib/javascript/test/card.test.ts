@@ -3,9 +3,10 @@ import { encodeBalance } from "../src/balance.ts";
 import { decodeCard } from "../src/card.ts";
 import { encodeId } from "../src/id.ts";
 import { PERSONAL_JOURNEY_SUMMARY } from "../src/journey-summary.ts";
+import { encodeTransaction } from "../src/transaction.ts";
 import { encodeCardType } from "../src/type.ts";
 import { journeySummaries } from "./fixtures/journey-summaries.ts";
-import { transactions } from "./fixtures/transactions.ts";
+import { personalJourney, transactions } from "./fixtures/transactions.ts";
 
 const AVANZA_BLOCK_0 = "1D68C3A9BF880400C8000020000000AB";
 const LAZO_BLOCK_0 = "0468C3A9BF12341802008100000023AA";
@@ -68,26 +69,31 @@ it("replays the balance across dumps", () => {
 	expect(topUp.balance - bus.balance).toBe(busRecord.amount);
 });
 
-it("decodes a personal card", () => {
+it("decodes personal cards of both types", () => {
 	const balance = encodeBalance(0);
-	const card = decodeCard(
-		dump({
-			0: AVANZA_BLOCK_0,
-			1: encodeCardType("AvanzaPersonalUnlimited"),
-			2: encodeId("BP123456"),
-			8: balance,
-			9: balance,
-			10: PERSONAL_JOURNEY_SUMMARY,
-			16: METADATA,
-			17: SUBSCRIPTION,
-			18: SUBSCRIPTION,
-		}),
-	);
-	expect(card.type).toBe("AvanzaPersonalUnlimited");
-	expect(card.balance).toBe(0);
-	expect(card.journeySummary).toBeUndefined();
-	expect(card.products).toHaveLength(1);
-	expect(card.products[0]!.metadata.validityDays).toBe(30);
+	for (const type of ["AvanzaPersonal", "AvanzaPersonalAbono"] as const) {
+		const card = decodeCard(
+			dump({
+				0: AVANZA_BLOCK_0,
+				1: encodeCardType(type),
+				2: encodeId("BP123456"),
+				5: encodeTransaction(personalJourney),
+				8: balance,
+				9: balance,
+				10: PERSONAL_JOURNEY_SUMMARY,
+				12: METADATA,
+				13: SUBSCRIPTION,
+				16: METADATA,
+				17: SUBSCRIPTION,
+			}),
+		);
+		expect(card.type).toBe(type);
+		expect(card.balance).toBe(0);
+		expect(card.transactions).toEqual([personalJourney]);
+		expect(card.journeySummary).toBeUndefined();
+		expect(card.products).toHaveLength(2);
+		expect(card.products[0]!.metadata.validityDays).toBe(30);
+	}
 });
 
 it("decodes a Lazo card and reads the SAK at the 4K offset first", () => {

@@ -21,8 +21,8 @@ fn maps_sequence_numbers_to_archive_blocks() {
 	assert_eq!(Transaction::ARCHIVE_BLOCKS, [28, 29, 30, 32, 33]);
 	assert_eq!(Transaction::LOG_BLOCKS, [5, 28, 29, 30, 32, 33]);
 	assert_eq!(
-		[0, 1, 2, 3, 4, 5].map(Transaction::archive_block),
-		[Some(28), Some(29), Some(30), Some(32), Some(33), None]
+		[0, 1, 2, 3, 4, 5, 0x21].map(Transaction::archive_block),
+		[Some(28), Some(29), Some(30), Some(32), Some(33), None, None]
 	);
 }
 

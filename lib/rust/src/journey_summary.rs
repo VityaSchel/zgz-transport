@@ -1,5 +1,4 @@
 use crate::bytes::{Block, check_checksum, in_range, with_checksum};
-use crate::card_type::CardType;
 use crate::date::Date;
 use crate::direction::Direction;
 use crate::error::{Error, Result};
@@ -34,8 +33,8 @@ pub struct JourneySummary {
 	pub last_paid_at: LastPaidAt,
 	/// Same as byte 4 of the current transaction.
 	pub consecutive_payments: u8,
-	/// Product of the card.
-	pub card_type: CardType,
+	/// Byte 7: the same product id a [`Transaction`](crate::Transaction) carries in byte 0.
+	pub product_id: u8,
 	/// Whether the current journey was a free transfer.
 	pub free: bool,
 	/// Route of the current journey.
@@ -47,7 +46,9 @@ pub struct JourneySummary {
 }
 
 impl JourneySummary {
-	/// The constant block 10 of personal cards, which [`decode`](Self::decode) rejects.
+	/// The block 10 stamp of one personal card, its only non-zero byte [07] a product id. Another
+	/// personal card keeps block 10 all zero, so neither value can be relied on.
+	/// [`decode`](Self::decode) rejects it.
 	pub const PERSONAL: Block = [
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x0a,
@@ -56,7 +57,7 @@ impl JourneySummary {
 	/// Decodes block 10 of a top up card.
 	///
 	/// # Errors
-	/// [`Error::Checksum`](crate::Error::Checksum), [`Error::NonZero`](crate::Error::NonZero), [`Error::Range`](crate::Error::Range), [`Error::Direction`](crate::Error::Direction) or [`Error::UnknownCardTypeByte`](crate::Error::UnknownCardTypeByte).
+	/// [`Error::Checksum`](crate::Error::Checksum), [`Error::NonZero`](crate::Error::NonZero), [`Error::Range`](crate::Error::Range) or [`Error::Direction`](crate::Error::Direction).
 	pub fn decode(block: &Block) -> Result<Self> {
 		check_checksum(block)?;
 		let [
@@ -67,7 +68,7 @@ impl JourneySummary {
 			hour,
 			minute,
 			consecutive_payments,
-			card_type,
+			product_id,
 			free,
 			route,
 			direction,
@@ -96,7 +97,7 @@ impl JourneySummary {
 				minute,
 			},
 			consecutive_payments,
-			card_type: CardType::from_byte(card_type)?,
+			product_id,
 			free: free == 1,
 			route: Route(route),
 			direction: Direction::try_from(direction)?,
@@ -127,7 +128,7 @@ impl JourneySummary {
 			hour,
 			minute,
 			self.consecutive_payments,
-			self.card_type.byte(),
+			self.product_id,
 			u8::from(self.free),
 			self.route.0,
 			u8::from(self.direction),

@@ -42,6 +42,7 @@ class TransactionLogTest {
 		assertEquals(OptionalInt.of(28), TransactionLog.archiveBlock(0));
 		assertEquals(OptionalInt.of(33), TransactionLog.archiveBlock(4));
 		assertEquals(OptionalInt.empty(), TransactionLog.archiveBlock(5));
+		assertEquals(OptionalInt.empty(), TransactionLog.archiveBlock(0x21));
 		assertEquals(OptionalInt.empty(), TransactionLog.archiveBlock(-1));
 	}
 

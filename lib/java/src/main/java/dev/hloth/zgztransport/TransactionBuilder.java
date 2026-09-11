@@ -6,20 +6,19 @@ package dev.hloth.zgztransport;
  * that sit next to each other.
  *
  * <p>
- * The amount, the counters and the network flag start at zero, the values a top
- * up carries. The product, the stop, the route, the kind and the timestamp have
- * no default and have to be set. Nothing is checked until {@link #build()}
- * runs.
+ * The product id, the amount, the counters and the network flag start at zero.
+ * The stop, the route, the kind and the timestamp have no default and have to
+ * be set. Nothing is checked until {@link #build()} runs.
  *
  * <pre>{@code
- * Transaction ride = Transaction.builder().cardType(CardType.AVANZA_TOP_UP).amount(550).consecutivePayments(1)
- * 		.stop(new Stop.Urban(500)).route(new Route(31)).kind(new TransactionKind.Journey(Direction.TWO)).dutyTrip(7)
+ * Transaction ride = Transaction.builder().productId(0x02).amount(550).consecutivePayments(1).stop(new Stop.Urban(500))
+ * 		.route(new Route(31)).kind(new TransactionKind.Journey(Direction.TWO)).dutyTrip(7)
  * 		.createdAt(CardDateTime.of(2026, 8, 26, 9, 41, 27)).sequence(1).build();
  * }</pre>
  */
 public final class TransactionBuilder {
 
-	private CardType cardType;
+	private int productId;
 	private int networkFlag;
 	private int amount;
 	private int consecutivePayments;
@@ -33,8 +32,8 @@ public final class TransactionBuilder {
 	TransactionBuilder() {
 	}
 
-	public TransactionBuilder cardType(CardType cardType) {
-		this.cardType = cardType;
+	public TransactionBuilder productId(int productId) {
+		this.productId = productId;
 		return this;
 	}
 
@@ -93,7 +92,7 @@ public final class TransactionBuilder {
 	 *             if a field that has no default was not set
 	 */
 	public Transaction build() {
-		return new Transaction(cardType, networkFlag, amount, consecutivePayments, stop, route, kind, dutyTrip,
+		return new Transaction(productId, networkFlag, amount, consecutivePayments, stop, route, kind, dutyTrip,
 				createdAt, sequence);
 	}
 }

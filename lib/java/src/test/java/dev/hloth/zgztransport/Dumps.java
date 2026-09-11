@@ -13,8 +13,14 @@ final class Dumps {
 
 	static Dump.Builder personalCard() {
 		return Dump.builder(Chip.CLASSIC_1K).block(0, Hex.bytes(Fixtures.AVANZA_BLOCK_0))
-				.block(1, CardType.AVANZA_PERSONAL_UNLIMITED).block(2, CardId.parse("BP123456"))
-				.block(8, new Balance(0)).block(9, new Balance(0)).block(10, JourneySummary.personalBlock());
+				.block(1, CardType.AVANZA_PERSONAL).block(2, CardId.parse("BP123456")).block(8, new Balance(0))
+				.block(9, new Balance(0)).block(10, JourneySummary.personalBlock());
+	}
+
+	static Dump.Builder personalAbonoCard() {
+		return Dump.builder(Chip.CLASSIC_1K).block(0, Hex.bytes(Fixtures.AVANZA_BLOCK_0))
+				.block(1, CardType.AVANZA_PERSONAL_ABONO).block(2, CardId.parse("BP123457")).block(8, new Balance(0))
+				.block(9, new Balance(0));
 	}
 
 	static Dump.Builder lazoCard() {

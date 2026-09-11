@@ -18,7 +18,7 @@ fn encodes_journey_summaries() {
 }
 
 #[test]
-fn rejects_the_personal_card_constant() {
+fn rejects_the_personal_card_stamp() {
 	assert_eq!(
 		JourneySummary::PERSONAL,
 		array::<16>("000000000000000A000000000000000A")
@@ -96,18 +96,17 @@ fn rejects_out_of_range_fields_when_decoding() {
 			..
 		})
 	));
-	assert_eq!(with(7, 0x0b), Err(Error::UnknownCardTypeByte(0x0b)));
+	assert_eq!(with(7, 0x06).map(|summary| summary.product_id), Ok(0x06));
 }
 
 #[test]
-fn checks_hour_then_previous_direction_then_date_then_card_type() {
+fn checks_hour_then_previous_direction_then_date() {
 	let mut block: [u8; 16] = array(journey_summaries()[1].0);
 	let original = block;
 	block[4] = 24;
 	block[1] = 3;
 	block[2] = 0;
 	block[3] = 0;
-	block[7] = 0x0b;
 	assert!(matches!(
 		JourneySummary::decode(&checksummed(block)),
 		Err(Error::Range { name: "hour", .. })
@@ -124,10 +123,7 @@ fn checks_hour_then_previous_direction_then_date_then_card_type() {
 	));
 	block[2] = original[2];
 	block[3] = original[3];
-	assert_eq!(
-		JourneySummary::decode(&checksummed(block)),
-		Err(Error::UnknownCardTypeByte(0x0b))
-	);
+	assert!(JourneySummary::decode(&checksummed(block)).is_ok());
 }
 
 #[test]

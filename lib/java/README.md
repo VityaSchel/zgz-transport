@@ -14,17 +14,17 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>2.0.0</version>
+	<version>3.0.0</version>
 </dependency>
 ```
 
 Kotlin:
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:2.0.0")
+implementation("dev.hloth:zgz-transport:3.0.0")
 ```
 
-**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/2.0.0):**
+**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/3.0.0):**
 
 Java:
 
@@ -41,7 +41,7 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>2.0.0</version>
+	<version>3.0.0</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ repositories {
 ```
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:2.0.0")
+implementation("dev.hloth:zgz-transport:3.0.0")
 ```
 
 ## Usage
@@ -86,7 +86,7 @@ Every structure the card holds is a type with a `decode` that reads its bytes an
 
 ```java
 Transaction ride = Transaction.builder()
-		.cardType(CardType.AVANZA_TOP_UP)
+		.productId(0x02)
 		.amount(550)
 		.consecutivePayments(1)
 		.stop(new Stop.Urban(500))
@@ -133,12 +133,12 @@ The published jars are reproducible. Build from a git clone, since the timestamp
 
 ```sh
 git clone https://git.hloth.dev/hloth/zgz-transport.git && cd zgz-transport/lib/java
-git checkout v2.0.0
+git checkout v3.0.0
 ./mvnw -B -DskipTests package
 shasum -a 256 target/zgz-transport-*.jar
 
-curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/2.0.0/zgz-transport-2.0.0.jar
-shasum -a 256 zgz-transport-2.0.0.jar
+curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/3.0.0/zgz-transport-3.0.0.jar
+shasum -a 256 zgz-transport-3.0.0.jar
 ```
 
 ## License

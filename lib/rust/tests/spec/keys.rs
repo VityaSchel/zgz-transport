@@ -1,4 +1,4 @@
-use zgz_transport::CardType::{AvanzaPersonalUnlimited, AvanzaTopUp, LazoTopUp};
+use zgz_transport::CardType::{AvanzaPersonal, AvanzaPersonalAbono, AvanzaTopUp, LazoTopUp};
 use zgz_transport::SectorKeys;
 
 use crate::hex::array;
@@ -16,14 +16,17 @@ fn returns_avanza_keys_per_sector_and_product() {
 	let unused = Some(keys(Some("A0A1A2A3A4A5"), Some("B0B1B2B3B4B5")));
 	for sector in 0..=8 {
 		assert_eq!(AvanzaTopUp.keys(sector), operator);
-		assert_eq!(AvanzaPersonalUnlimited.keys(sector), operator);
+		assert_eq!(AvanzaPersonal.keys(sector), operator);
+		assert_eq!(AvanzaPersonalAbono.keys(sector), operator);
 	}
 	for sector in 9..=15 {
 		assert_eq!(AvanzaTopUp.keys(sector), unused);
-		assert_eq!(AvanzaPersonalUnlimited.keys(sector), operator);
+		assert_eq!(AvanzaPersonal.keys(sector), operator);
+		assert_eq!(AvanzaPersonalAbono.keys(sector), operator);
 	}
 	assert_eq!(AvanzaTopUp.keys(16), None);
-	assert_eq!(AvanzaPersonalUnlimited.keys(16), None);
+	assert_eq!(AvanzaPersonal.keys(16), None);
+	assert_eq!(AvanzaPersonalAbono.keys(16), None);
 }
 
 #[test]

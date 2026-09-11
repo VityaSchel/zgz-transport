@@ -1,6 +1,7 @@
 package dev.hloth.zgztransport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -56,6 +57,26 @@ class CardTest {
 				.block(13, Hex.bytes(Fixtures.SUBSCRIPTION)).block(16, Hex.bytes(Fixtures.METADATA))
 				.block(17, Hex.bytes(Fixtures.SUBSCRIPTION)).build().bytes();
 		assertEquals(List.of(3, 4), Card.decode(both).products().stream().map(Product::sector).toList());
+	}
+
+	@Test
+	void decodesAPersonalAbonoCardWithItsProduct() {
+		Product expected = new Product(3, SubscriptionMetadata.decode(Hex.bytes(Fixtures.METADATA)),
+				Subscription.decode(Hex.bytes(Fixtures.SUBSCRIPTION)));
+		byte[] block5 = Transaction.builder().productId(0x06).networkFlag(2).consecutivePayments(1)
+				.stop(new Stop.Urban(500)).route(new Route(11)).kind(new TransactionKind.Journey(Direction.ONE))
+				.dutyTrip(7).createdAt(CardDateTime.of(2026, 3, 15, 9, 41, 27)).build().encode();
+		byte[] dump = Dumps.personalAbonoCard().block(5, block5).block(12, Hex.bytes(Fixtures.METADATA))
+				.block(13, Hex.bytes(Fixtures.SUBSCRIPTION)).build().bytes();
+		Card card = Card.decode(dump);
+		assertEquals(CardType.AVANZA_PERSONAL_ABONO, card.cardType());
+		assertTrue(card.cardType().isPersonal());
+		assertEquals("BP123457", card.id().toString());
+		assertEquals(new Balance(0), card.balance());
+		assertEquals(List.of(expected), card.products());
+		assertEquals(Optional.empty(), card.journeySummary());
+		assertEquals(List.of(0x06), card.transactions().stream().map(Transaction::productId).toList());
+		assertFalse(card.transactions().get(0).isTransfer());
 	}
 
 	@Test

@@ -6,8 +6,8 @@ import java.util.Optional;
 /**
  * Block 10 of a top up card, which the card rewrites on every journey and
  * leaves alone on a top up. A card that has only ever been topped up holds all
- * zeroes here, and a personal card holds a constant that
- * {@link #decode(byte[])} rejects, see {@link #personalBlock()}.
+ * zeroes here, and a personal card does not maintain the block at all, see
+ * {@link #personalBlock()}.
  *
  * @param previous
  *            the journey before the current one, absent on the first ever
@@ -17,8 +17,9 @@ import java.util.Optional;
  *            pointing at the ride it belongs to
  * @param consecutivePayments
  *            the same counter as byte 4 of the current transaction
- * @param cardType
- *            the product of the card
+ * @param productId
+ *            byte 7, the product that paid for the journey, the same code
+ *            {@link Transaction#productId()} carries
  * @param free
  *            whether the current journey was a free transfer
  * @param route
@@ -29,7 +30,7 @@ import java.util.Optional;
  *            {@code 0x63} after a paid journey and {@code 0x62} after a free
  *            transfer
  */
-public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int consecutivePayments, CardType cardType,
+public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int consecutivePayments, int productId,
 		boolean free, Route route, Direction direction, int transfersLeft) implements Encodable {
 
 	/**
@@ -94,16 +95,17 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 	public JourneySummary {
 		Objects.requireNonNull(previous, "previous");
 		Objects.requireNonNull(lastPaidAt, "lastPaidAt");
-		Objects.requireNonNull(cardType, "cardType");
 		Objects.requireNonNull(route, "route");
 		Objects.requireNonNull(direction, "direction");
 		Bytes.checkRange("consecutivePayments", consecutivePayments, 0, 0xff);
+		Bytes.checkRange("productId", productId, 0, 0xff);
 		Bytes.checkRange("transfersLeft", transfersLeft, 0, 0xff);
 	}
 
 	/**
-	 * The constant block 10 that personal cards hold, which stands for no journey
-	 * at all.
+	 * The block 10 stamp of one personal card, its only non-zero byte {@code [07]} a
+	 * product id. Another personal card keeps block 10 all zero, so neither value can
+	 * be relied on. {@link #decode(byte[])} rejects it.
 	 *
 	 * @return the sixteen bytes
 	 */
@@ -135,9 +137,8 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 		Optional<Leg> previous = Bytes.u8(block[0]) == 0
 				? Optional.empty()
 				: Optional.of(new Leg(new Route(Bytes.u8(block[0])), Direction.ofValue(Bytes.u8(block[1]))));
-		return new JourneySummary(previous, lastPaidAt, Bytes.u8(block[6]), CardType.ofFirstByte(Bytes.u8(block[7])),
-				Bytes.u8(block[8]) == 1, new Route(Bytes.u8(block[9])), Direction.ofValue(Bytes.u8(block[10])),
-				Bytes.u8(block[13]));
+		return new JourneySummary(previous, lastPaidAt, Bytes.u8(block[6]), Bytes.u8(block[7]), Bytes.u8(block[8]) == 1,
+				new Route(Bytes.u8(block[9])), Direction.ofValue(Bytes.u8(block[10])), Bytes.u8(block[13]));
 	}
 
 	private static LastPaid lastPaid(byte[] block) {
@@ -166,7 +167,7 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 		block[4] = (byte) lastPaidAt.hour();
 		block[5] = (byte) lastPaidAt.minute();
 		block[6] = (byte) consecutivePayments;
-		block[7] = (byte) cardType.firstByte();
+		block[7] = (byte) productId;
 		block[8] = (byte) (free ? 1 : 0);
 		block[9] = (byte) route.id();
 		block[10] = (byte) direction.value();

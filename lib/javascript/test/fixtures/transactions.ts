@@ -13,7 +13,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "020002F8010320D201FE2AD8132D1201",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 760,
 			consecutivePayments: 1,
@@ -29,7 +29,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "020002F80105DCD2026B2AD90D333B02",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 760,
 			consecutivePayments: 1,
@@ -45,7 +45,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "0200022601817E1F0211344D10163003",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -61,7 +61,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "020002260180011F0112344D14100704",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -77,7 +77,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "02000226018001230209344E0C051B00",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -93,7 +93,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "0200022601817F160105344E0D1F2001",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -109,7 +109,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "0200022601801E23020934540F153502",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -125,7 +125,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "020002260180CE16010D3454102D2403",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 550,
 			consecutivePayments: 1,
@@ -141,7 +141,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "02001388001F2C00080034840D123604",
 		decoded: {
-			cardType: "AvanzaTopUp",
+			productId: 0x02,
 			networkFlag: 0,
 			amount: 5000,
 			consecutivePayments: 0,
@@ -156,7 +156,7 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 	{
 		encoded: "0D0000000105DCD202013518162C2000",
 		decoded: {
-			cardType: "LazoTopUp",
+			productId: 0x0d,
 			networkFlag: 0,
 			amount: 0,
 			consecutivePayments: 1,
@@ -170,3 +170,18 @@ export const transactions: { encoded: string; decoded: Transaction }[] = [
 		},
 	},
 ];
+
+/** A personal card record: free, its network flag set and a product id that is no card type. */
+export const personalJourney: Transaction = {
+	productId: 0x06,
+	networkFlag: 2,
+	amount: 0,
+	consecutivePayments: 1,
+	stop: { network: "urban", id: 500 },
+	route: 31,
+	kind: "journey",
+	direction: 2,
+	dutyTrip: 6,
+	createdAt: at(2026, 8, 26, 9, 41, 27),
+	sequence: 0,
+};

@@ -4,6 +4,7 @@ use zgz_transport::{
 };
 
 use crate::fixtures::transactions::transactions;
+use crate::products::{METADATA, SUBSCRIPTION};
 
 use crate::hex::{array, hex};
 
@@ -107,35 +108,37 @@ fn decodes_a_lazo_card_without_journeys() {
 }
 
 #[test]
-fn decodes_a_personal_card() {
+fn decodes_a_personal_card_of_either_type() {
 	let balance = Balance(0).encode().unwrap();
-	let metadata: Block = array("1101342F00210000001E002100000015");
-	let subscription: Block = array("342F344E0000010203043441081E0006");
-	let dump = dump(&[
-		(0, array(AVANZA_BLOCK_0)),
-		(1, CardType::AvanzaPersonalUnlimited.encode()),
-		(2, id("BP123456")),
-		(8, balance),
-		(9, balance),
-		(10, JourneySummary::PERSONAL),
-		(16, metadata),
-		(17, subscription),
-		(18, subscription),
-	]);
-	let card = Card::decode(&dump).unwrap();
-	assert_eq!(card.card_type, CardType::AvanzaPersonalUnlimited);
-	assert_eq!(card.balance, Balance(0));
-	assert_eq!(card.journey_summary, None);
-	assert_eq!(card.products[0], None);
-	let product = card.products[1].unwrap();
-	assert_eq!(
-		product.metadata,
-		SubscriptionMetadata::decode(&metadata).unwrap()
-	);
-	assert_eq!(
-		product.subscription,
-		Subscription::decode(&subscription).unwrap()
-	);
+	let metadata: Block = array(METADATA);
+	let subscription: Block = array(SUBSCRIPTION);
+	for card_type in [CardType::AvanzaPersonal, CardType::AvanzaPersonalAbono] {
+		let dump = dump(&[
+			(0, array(AVANZA_BLOCK_0)),
+			(1, card_type.encode()),
+			(2, id("BP123456")),
+			(8, balance),
+			(9, balance),
+			(10, JourneySummary::PERSONAL),
+			(16, metadata),
+			(17, subscription),
+			(18, subscription),
+		]);
+		let card = Card::decode(&dump).unwrap();
+		assert_eq!(card.card_type, card_type);
+		assert_eq!(card.balance, Balance(0));
+		assert_eq!(card.journey_summary, None);
+		assert_eq!(card.products[0], None);
+		let product = card.products[1].unwrap();
+		assert_eq!(
+			product.metadata,
+			SubscriptionMetadata::decode(&metadata).unwrap()
+		);
+		assert_eq!(
+			product.subscription,
+			Subscription::decode(&subscription).unwrap()
+		);
+	}
 }
 
 #[test]

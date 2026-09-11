@@ -61,7 +61,7 @@ impl Card {
 			return Err(Error::BalanceBlocksDiffer);
 		}
 		let card_type = CardType::decode(&blocks[1])?;
-		let personal = card_type == CardType::AvanzaPersonalUnlimited;
+		let personal = card_type.is_personal();
 		let product = |sector: usize| -> Result<Option<Product>> {
 			let index = sector * 4;
 			if !personal || is_zero(&blocks[index]) {

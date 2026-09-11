@@ -33,8 +33,8 @@ class TransactionTest {
 		assertFalse(paid.isFree());
 		assertFalse(topUp.isFree());
 		assertTrue(transfer.isFree());
-		assertFalse(new Transaction(topUp.cardType(), 0, 0, 0, topUp.stop(), topUp.route(), new TransactionKind.TopUp(),
-				0, topUp.createdAt(), 0).isFree());
+		assertFalse(new Transaction(topUp.productId(), 0, 0, 0, topUp.stop(), topUp.route(),
+				new TransactionKind.TopUp(), 0, topUp.createdAt(), 0).isFree());
 	}
 
 	@Test
@@ -48,6 +48,36 @@ class TransactionTest {
 		assertFalse(checkOut.isTransfer());
 		assertTrue(pass.isFree());
 		assertFalse(pass.isTransfer());
+	}
+
+	@Test
+	void countsNoJourneyOfASubscriptionAsATransfer() {
+		Transaction ride = Transaction.builder().productId(0x06).networkFlag(2).consecutivePayments(1)
+				.stop(new Stop.Urban(500)).route(new Route(11)).kind(new TransactionKind.Journey(Direction.ONE))
+				.dutyTrip(7).createdAt(CardDateTime.of(2026, 3, 15, 9, 41, 27)).build();
+		assertTrue(ride.isFree());
+		assertFalse(ride.isTransfer());
+		assertFalse(ride.isCheckOut());
+		assertTrue(Transaction.decode(ride.encode()).isFree());
+		assertFalse(Transaction.decode(ride.encode()).isTransfer());
+	}
+
+	@Test
+	void readsAProductIdThatIsNotACardTypeByte() {
+		Transaction ride = Transaction.builder().productId(0x06).networkFlag(2).stop(new Stop.Urban(500))
+				.route(new Route(11)).kind(new TransactionKind.Journey(Direction.ONE))
+				.createdAt(CardDateTime.of(2026, 3, 15, 9, 41, 27)).build();
+		byte[] block = ride.encode();
+		assertEquals(0x06, Byte.toUnsignedInt(block[0]));
+		assertEquals(ride, Transaction.decode(block));
+		assertEquals(0x06, Transaction.decode(block).productId());
+	}
+
+	@Test
+	void rejectsAProductIdOutsideOneByte() {
+		Transaction ride = Fixtures.transactions().get(0).decoded();
+		assertThrows(IllegalArgumentException.class,
+				() -> new Transaction(0x100, 0, 0, 1, ride.stop(), ride.route(), ride.kind(), 0, ride.createdAt(), 0));
 	}
 
 	@Test
@@ -66,14 +96,10 @@ class TransactionTest {
 	}
 
 	@Test
-	void checksTheCardTypeThenTheTimestampThenTheKind() {
+	void checksTheTimestampThenTheKind() {
 		byte[] block = Hex.bytes(Fixtures.transactions().get(0).hex());
-		block[0] = 0x0b;
 		block[12] = 24;
 		block[8] = 3;
-		CardFormatException unknownType = assertThrows(CardFormatException.class, () -> Transaction.decode(block));
-		assertTrue(unknownType.getMessage().contains("card type byte"), unknownType.getMessage());
-		block[0] = 0x02;
 		CardFormatException badHour = assertThrows(CardFormatException.class, () -> Transaction.decode(block));
 		assertTrue(badHour.getMessage().contains("hour"), badHour.getMessage());
 		block[12] = 19;
@@ -84,25 +110,25 @@ class TransactionTest {
 	@Test
 	void rejectsFieldsOutsideTheirRange() {
 		Transaction ride = Fixtures.transactions().get(0).decoded();
-		assertThrows(IllegalArgumentException.class, () -> new Transaction(ride.cardType(), 0, 0x10000, 1, ride.stop(),
+		assertThrows(IllegalArgumentException.class, () -> new Transaction(ride.productId(), 0, 0x10000, 1, ride.stop(),
 				ride.route(), ride.kind(), 0, ride.createdAt(), 0));
 		assertThrows(NullPointerException.class,
-				() -> new Transaction(ride.cardType(), 0, 0, 1, ride.stop(), ride.route(), ride.kind(), 0, null, 0));
+				() -> new Transaction(ride.productId(), 0, 0, 1, ride.stop(), ride.route(), ride.kind(), 0, null, 0));
 	}
 
 	@Test
 	void buildsTransactionsFieldByField() {
 		Transaction ride = Fixtures.transactions().get(0).decoded();
-		assertEquals(ride, Transaction.builder().cardType(ride.cardType()).amount(ride.amount())
+		assertEquals(ride, Transaction.builder().productId(ride.productId()).amount(ride.amount())
 				.consecutivePayments(ride.consecutivePayments()).stop(ride.stop()).route(ride.route()).kind(ride.kind())
 				.dutyTrip(ride.dutyTrip()).createdAt(ride.createdAt()).sequence(ride.sequence()).build());
 	}
 
 	@Test
 	void theBuilderStartsAtTheValuesATopUpCarries() {
-		Transaction topUp = Transaction.builder().cardType(CardType.AVANZA_TOP_UP).stop(new Stop.Other(7980))
-				.route(new Route(0)).kind(new TransactionKind.TopUp())
-				.createdAt(CardDateTime.of(2026, 4, 4, 13, 18, 54)).build();
+		Transaction topUp = Transaction.builder().stop(new Stop.Other(7980)).route(new Route(0))
+				.kind(new TransactionKind.TopUp()).createdAt(CardDateTime.of(2026, 4, 4, 13, 18, 54)).build();
+		assertEquals(0, topUp.productId());
 		assertEquals(0, topUp.networkFlag());
 		assertEquals(0, topUp.amount());
 		assertEquals(0, topUp.consecutivePayments());

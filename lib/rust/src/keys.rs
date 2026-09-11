@@ -31,12 +31,12 @@ const LAZO_SHARED: SectorKeys = SectorKeys {
 
 impl CardType {
 	/// Keys of a sector, `None` past the chip's last one (15 on Avanza, 39 on Lazo).
-	/// Sectors 0 to 8 are the same on both Avanza products, so either opens a card before block 1 is read.
+	/// Sectors 0 to 8 are the same on every Avanza product, so any of them opens a card before block 1 is read.
 	#[must_use]
 	pub const fn keys(self, sector: u8) -> Option<SectorKeys> {
 		match (self, sector) {
-			(Self::AvanzaTopUp | Self::AvanzaPersonalUnlimited, 0..=8)
-			| (Self::AvanzaPersonalUnlimited, 9..=15) => Some(AVANZA_OPERATOR),
+			(Self::AvanzaTopUp | Self::AvanzaPersonal | Self::AvanzaPersonalAbono, 0..=8)
+			| (Self::AvanzaPersonal | Self::AvanzaPersonalAbono, 9..=15) => Some(AVANZA_OPERATOR),
 			(Self::AvanzaTopUp, 9..=15) => Some(AVANZA_UNUSED),
 			(Self::LazoTopUp, 0..=31) => Some(LAZO_SHARED),
 			(Self::LazoTopUp, 32) => Some(SectorKeys {

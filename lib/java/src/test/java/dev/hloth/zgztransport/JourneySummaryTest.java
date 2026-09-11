@@ -25,9 +25,21 @@ class JourneySummaryTest {
 	}
 
 	@Test
-	void rejectsTheBlockPersonalCardsHold() {
+	void rejectsTheStampSeenOnAPersonalCard() {
 		assertArrayEquals(Hex.bytes("000000000000000A000000000000000A"), JourneySummary.personalBlock());
+		assertEquals(0x0a, Byte.toUnsignedInt(JourneySummary.personalBlock()[7]));
 		assertThrows(CardFormatException.class, () -> JourneySummary.decode(JourneySummary.personalBlock()));
+	}
+
+	@Test
+	void readsByteSevenAsARawProductId() {
+		JourneySummary summary = Fixtures.journeySummaries().get(0).decoded();
+		assertEquals(0x02, summary.productId());
+		byte[] block = Hex.bytes(Fixtures.journeySummaries().get(0).hex());
+		block[7] = 0x06;
+		JourneySummary onASubscription = JourneySummary.decode(Hex.checksummed(block));
+		assertEquals(0x06, onASubscription.productId());
+		assertArrayEquals(block, onASubscription.encode());
 	}
 
 	@Test
@@ -49,7 +61,7 @@ class JourneySummaryTest {
 	@Test
 	void rejectsFieldsOutsideTheirRange() {
 		byte[] base = Hex.bytes(Fixtures.journeySummaries().get(0).hex());
-		for (int[] change : new int[][]{{4, 24}, {5, 60}, {7, 0x0b}, {10, 3}}) {
+		for (int[] change : new int[][]{{4, 24}, {5, 60}, {10, 3}}) {
 			byte[] block = base.clone();
 			block[change[0]] = (byte) change[1];
 			assertThrows(CardFormatException.class, () -> JourneySummary.decode(Hex.checksummed(block)));

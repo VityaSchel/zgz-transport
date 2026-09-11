@@ -6,33 +6,30 @@ import {
 	withChecksum,
 } from "./bytes.ts";
 
-/** Known products and their value in bytes 0 to 2 of block 1. */
+/**
+ * Known card types and their value in bytes 0 to 2 of block 1. `AvanzaPersonalAbono` is printed
+ * "Abono de transporte"; what separates it from `AvanzaPersonal` is unknown.
+ */
 export const CardType = {
 	AvanzaTopUp: 0x02699f,
-	AvanzaPersonalUnlimited: 0x0a9775,
+	AvanzaPersonal: 0x0a9775,
+	AvanzaPersonalAbono: 0x0a98da,
 	LazoTopUp: 0x0d371f,
 } as const;
 
-/** Name of a known product. */
+/** Name of a known card type. */
 export type CardTypeName = keyof typeof CardType;
 
 const names = Object.keys(CardType) as CardTypeName[];
 
-/** First byte of a product, the one transactions and the journey summary carry. */
-export const cardTypeByte = (type: CardTypeName) => CardType[type] >> 16;
+const PERSONAL: CardTypeName[] = ["AvanzaPersonal", "AvanzaPersonalAbono"];
+
+/** Whether a card type carries subscription products instead of a balance. */
+export const isPersonalCardType = (type: CardTypeName): boolean =>
+	PERSONAL.includes(type);
 
 /**
- * Finds the product whose first byte is `byte`.
- * @throws When no product starts with that byte.
- */
-export function cardTypeFromByte(byte: number): CardTypeName {
-	const name = names.find((type) => cardTypeByte(type) === byte);
-	if (!name) throw new Error(`unknown card type byte ${byte}`);
-	return name;
-}
-
-/**
- * Decodes the product from block 1.
+ * Decodes the card type from block 1.
  * @param block The 16-byte block.
  */
 export function decodeCardType(block: Uint8Array): CardTypeName {
@@ -48,7 +45,7 @@ export function decodeCardType(block: Uint8Array): CardTypeName {
 }
 
 /**
- * Encodes a product into block 1.
+ * Encodes a card type into block 1.
  * @returns The 16-byte block with its checksum.
  */
 export function encodeCardType(type: CardTypeName): Uint8Array {

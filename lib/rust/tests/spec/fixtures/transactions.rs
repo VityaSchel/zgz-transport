@@ -1,13 +1,13 @@
 use zgz_transport::Direction::{One, Two};
 use zgz_transport::Stop::{Other, Tram, Urban};
-use zgz_transport::{CardType, Route, Transaction, TransactionKind};
+use zgz_transport::{Route, Transaction, TransactionKind};
 
 use super::at;
 
 pub fn transactions() -> Vec<(&'static str, Transaction)> {
 	let journey =
 		|amount, stop, route, direction, duty_trip, (y, mo, d, h, mi, s), sequence| Transaction {
-			card_type: CardType::AvanzaTopUp,
+			product_id: 0x02,
 			network_flag: 0,
 			amount,
 			consecutive_payments: 1,
@@ -54,7 +54,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 		(
 			"02001388001F2C00080034840D123604",
 			Transaction {
-				card_type: CardType::AvanzaTopUp,
+				product_id: 0x02,
 				network_flag: 0,
 				amount: 5000,
 				consecutive_payments: 0,
@@ -69,7 +69,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 		(
 			"0A0100000181F40B0107346F09291B04",
 			Transaction {
-				card_type: CardType::AvanzaPersonalUnlimited,
+				product_id: 0x0a,
 				network_flag: 1,
 				amount: 0,
 				consecutive_payments: 1,
@@ -84,7 +84,7 @@ pub fn transactions() -> Vec<(&'static str, Transaction)> {
 		(
 			"0D0000000105DCD202013518162C2000",
 			Transaction {
-				card_type: CardType::LazoTopUp,
+				product_id: 0x0d,
 				network_flag: 0,
 				amount: 0,
 				consecutive_payments: 1,

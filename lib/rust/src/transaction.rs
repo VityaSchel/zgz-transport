@@ -1,5 +1,4 @@
 use crate::bytes::Block;
-use crate::card_type::CardType;
 use crate::date_time::DateTime;
 use crate::direction::Direction;
 use crate::error::{Error, Result};
@@ -37,8 +36,9 @@ impl TransactionKind {
 /// One 16-byte record of the transaction log.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Transaction {
-	/// Product of the card that made the transaction.
-	pub card_type: CardType,
+	/// Byte 0: the product that paid, a subscription product id on a personal card and the card
+	/// type's first byte on a top up card.
+	pub product_id: u8,
 	/// Byte 1: `0` on top up cards, `1` or `2` on personal cards.
 	pub network_flag: u8,
 	/// Money moved in [`Balance::UNITS_PER_EURO`](crate::Balance::UNITS_PER_EURO) units, `0` when the journey cost nothing.
@@ -55,7 +55,8 @@ pub struct Transaction {
 	pub duty_trip: u8,
 	/// Bytes 10 to 14.
 	pub created_at: DateTime,
-	/// `0` to `4`, selects the archive block, see [`Transaction::archive_block`].
+	/// `0` to `4`, selects the archive block, see [`Transaction::archive_block`]; a top up can
+	/// carry `0x21` instead.
 	pub sequence: u8,
 }
 
@@ -63,10 +64,10 @@ impl Transaction {
 	/// Decodes one record of the transaction log.
 	///
 	/// # Errors
-	/// [`Error::UnknownCardTypeByte`](crate::Error::UnknownCardTypeByte), [`Error::TransactionKind`](crate::Error::TransactionKind) or the errors of [`DateTime::decode`].
+	/// [`Error::TransactionKind`](crate::Error::TransactionKind) or the errors of [`DateTime::decode`].
 	pub fn decode(block: &Block) -> Result<Self> {
 		let [
-			card_type,
+			product_id,
 			network_flag,
 			a0,
 			a1,
@@ -84,11 +85,10 @@ impl Transaction {
 			sequence,
 		] = *block;
 		let route = Route(route);
-		let card_type = CardType::from_byte(card_type)?;
 		let created_at = DateTime::decode([d0, d1, hour, minute, second])?;
 		let kind = TransactionKind::from_byte(kind)?;
 		Ok(Self {
-			card_type,
+			product_id,
 			network_flag,
 			amount: u16::from_be_bytes([a0, a1]),
 			consecutive_payments,
@@ -110,7 +110,7 @@ impl Transaction {
 		let [s0, s1] = self.stop.encode()?;
 		let [d0, d1, hour, minute, second] = self.created_at.encode()?;
 		Ok([
-			self.card_type.byte(),
+			self.product_id,
 			self.network_flag,
 			a0,
 			a1,
@@ -129,8 +129,7 @@ impl Transaction {
 		])
 	}
 
-	/// Whether the transaction is a journey that cost nothing. Every journey on a personal
-	/// unlimited card is free.
+	/// Whether the transaction is a journey that cost nothing. Every journey on a personal card is free.
 	#[must_use]
 	pub const fn is_free(self) -> bool {
 		matches!(self.kind, TransactionKind::Journey(_)) && self.amount == 0
@@ -138,12 +137,11 @@ impl Transaction {
 
 	/// Whether the journey is the free transfer a balance card earns after a paid ride, which the
 	/// operator grants once per ride, to another route, within 60 minutes on the urban network and
-	/// 75 when a CTAZ card enters Zaragoza.
+	/// 75 when a CTAZ card enters Zaragoza. [`network_flag`](Self::network_flag) tells the two kinds
+	/// of card apart: zero on every balance record seen, non-zero on every personal one.
 	#[must_use]
 	pub const fn is_transfer(self) -> bool {
-		self.is_free()
-			&& self.consecutive_payments > 0
-			&& !matches!(self.card_type, CardType::AvanzaPersonalUnlimited)
+		self.is_free() && self.consecutive_payments > 0 && self.network_flag == 0
 	}
 
 	/// Whether the journey is a check-out at a gated station, which carries no payment counter.

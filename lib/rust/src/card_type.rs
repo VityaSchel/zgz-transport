@@ -7,16 +7,20 @@ pub enum CardType {
 	/// Balance top-up Avanza card, `02699F`.
 	AvanzaTopUp,
 	/// Personal expiring Avanza card, `0A9775`.
-	AvanzaPersonalUnlimited,
+	AvanzaPersonal,
+	/// Personal expiring Avanza card, `0A98DA`, printed "Abono de transporte". What separates the
+	/// two personal card types is unknown.
+	AvanzaPersonalAbono,
 	/// Balance top-up Lazo card, `0D371F`.
 	LazoTopUp,
 }
 
 impl CardType {
 	/// Every known card type.
-	pub const ALL: [Self; 3] = [
+	pub const ALL: [Self; 4] = [
 		Self::AvanzaTopUp,
-		Self::AvanzaPersonalUnlimited,
+		Self::AvanzaPersonal,
+		Self::AvanzaPersonalAbono,
 		Self::LazoTopUp,
 	];
 
@@ -25,15 +29,16 @@ impl CardType {
 	pub const fn value(self) -> u32 {
 		match self {
 			Self::AvanzaTopUp => 0x02_69_9f,
-			Self::AvanzaPersonalUnlimited => 0x0a_97_75,
+			Self::AvanzaPersonal => 0x0a_97_75,
+			Self::AvanzaPersonalAbono => 0x0a_98_da,
 			Self::LazoTopUp => 0x0d_37_1f,
 		}
 	}
 
-	/// First byte of the card.
+	/// Whether the card carries subscription products instead of a balance.
 	#[must_use]
-	pub const fn byte(self) -> u8 {
-		self.value().to_be_bytes()[1]
+	pub const fn is_personal(self) -> bool {
+		matches!(self, Self::AvanzaPersonal | Self::AvanzaPersonalAbono)
 	}
 
 	/// Finds the product with the given bytes 0 to 2.
@@ -45,17 +50,6 @@ impl CardType {
 			.into_iter()
 			.find(|card_type| card_type.value() == value)
 			.ok_or(Error::UnknownCardType(value))
-	}
-
-	/// Finds the product whose first byte is `byte`.
-	///
-	/// # Errors
-	/// [`Error::UnknownCardTypeByte`](crate::Error::UnknownCardTypeByte).
-	pub fn from_byte(byte: u8) -> Result<Self> {
-		Self::ALL
-			.into_iter()
-			.find(|card_type| card_type.byte() == byte)
-			.ok_or(Error::UnknownCardTypeByte(byte))
 	}
 
 	/// Decodes block 1.

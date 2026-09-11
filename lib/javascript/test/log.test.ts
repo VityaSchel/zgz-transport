@@ -16,7 +16,14 @@ const blocks: Record<number, Uint8Array> = {
 };
 
 it("maps sequence numbers to archive blocks", () => {
-	expect([0, 1, 2, 3, 4].map(archiveBlock)).toEqual([28, 29, 30, 32, 33]);
+	expect([0, 1, 2, 3, 4].map((sequence) => archiveBlock(sequence))).toEqual([
+		28, 29, 30, 32, 33,
+	]);
+});
+
+it("has no archive block for a sequence outside 0 to 4", () => {
+	expect(archiveBlock(0x21)).toBeUndefined();
+	expect(archiveBlock(5)).toBeUndefined();
 });
 
 it("orders the ring by time and skips empty slots", () => {

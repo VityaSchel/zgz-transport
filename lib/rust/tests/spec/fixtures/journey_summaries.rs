@@ -1,4 +1,4 @@
-use zgz_transport::{CardType, Date, Direction, JourneySummary, LastPaidAt, Leg, Route};
+use zgz_transport::{Date, Direction, JourneySummary, LastPaidAt, Leg, Route};
 
 fn paid(year: u16, month: u8, day: u8, hour: u8, minute: u8) -> LastPaidAt {
 	LastPaidAt {
@@ -19,7 +19,7 @@ pub fn journey_summaries() -> Vec<(&'static str, JourneySummary)> {
 	let summary = |previous,
 	               last_paid_at,
 	               consecutive_payments,
-	               card_type,
+	               product_id,
 	               free,
 	               route,
 	               direction,
@@ -28,14 +28,14 @@ pub fn journey_summaries() -> Vec<(&'static str, JourneySummary)> {
 			previous,
 			last_paid_at,
 			consecutive_payments,
-			card_type,
+			product_id,
 			free,
 			route: Route(route),
 			direction,
 			transfers_left,
 		}
 	};
-	let avanza = CardType::AvanzaTopUp;
+	let avanza = 0x02;
 	vec![
 		(
 			"00002ADC091B010200D2020000630054",
@@ -95,7 +95,7 @@ pub fn journey_summaries() -> Vec<(&'static str, JourneySummary)> {
 				Some(leg(31, Direction::One)),
 				paid(2026, 8, 24, 22, 11),
 				1,
-				CardType::LazoTopUp,
+				0x0d,
 				true,
 				210,
 				Direction::Two,

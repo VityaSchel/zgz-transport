@@ -43,14 +43,14 @@ final class Fixtures {
 						journey(550, new Stop.Urban(206), 22, Direction.ONE, 13,
 								CardDateTime.of(2026, 2, 20, 16, 45, 36), 3)),
 				new Encoded<>("02001388001F2C00080034840D123604",
-						new Transaction(CardType.AVANZA_TOP_UP, 0, 5000, 0, new Stop.Other(7980), new Route(0),
+						new Transaction(0x02, 0, 5000, 0, new Stop.Other(7980), new Route(0),
 								new TransactionKind.TopUp(), 0, CardDateTime.of(2026, 4, 4, 13, 18, 54), 4)),
 				new Encoded<>("0A0100000181F40B0107346F09291B04",
-						new Transaction(CardType.AVANZA_PERSONAL_UNLIMITED, 1, 0, 1, new Stop.Urban(500), new Route(11),
+						new Transaction(0x0a, 1, 0, 1, new Stop.Urban(500), new Route(11),
 								new TransactionKind.Journey(Direction.ONE), 7, CardDateTime.of(2026, 3, 15, 9, 41, 27),
 								4)),
 				new Encoded<>("0D0000000105DCD202013518162C2000",
-						new Transaction(CardType.LAZO_TOP_UP, 0, 0, 1, new Stop.Tram(1500), Route.TRAM,
+						new Transaction(0x0d, 0, 0, 1, new Stop.Tram(1500), Route.TRAM,
 								new TransactionKind.Journey(Direction.TWO), 1, CardDateTime.of(2026, 8, 24, 22, 44, 32),
 								0)));
 	}
@@ -58,31 +58,30 @@ final class Fixtures {
 	static List<Encoded<JourneySummary>> journeySummaries() {
 		return List.of(
 				new Encoded<>("00002ADC091B010200D2020000630054",
-						summary(Optional.empty(), lastPaid(2021, 6, 28, 9, 27), 1, CardType.AVANZA_TOP_UP, false, 210,
-								Direction.TWO, 0x63)),
+						summary(Optional.empty(), lastPaid(2021, 6, 28, 9, 27), 1, 0x02, false, 210, Direction.TWO,
+								0x63)),
 				new Encoded<>("D2012AD90D33010200D20200006300AE",
-						summary(leg(210, Direction.ONE), lastPaid(2021, 6, 25, 13, 51), 1, CardType.AVANZA_TOP_UP,
-								false, 210, Direction.TWO, 0x63)),
+						summary(leg(210, Direction.ONE), lastPaid(2021, 6, 25, 13, 51), 1, 0x02, false, 210,
+								Direction.TWO, 0x63)),
 				new Encoded<>("23023454102D0102001601000063000B",
-						summary(leg(35, Direction.TWO), lastPaid(2026, 2, 20, 16, 45), 1, CardType.AVANZA_TOP_UP, false,
-								22, Direction.ONE, 0x63)),
+						summary(leg(35, Direction.TWO), lastPaid(2026, 2, 20, 16, 45), 1, 0x02, false, 22,
+								Direction.ONE, 0x63)),
 				new Encoded<>("16013468002B04020016020000630011",
-						summary(leg(22, Direction.ONE), lastPaid(2026, 3, 8, 0, 43), 4, CardType.AVANZA_TOP_UP, false,
-								22, Direction.TWO, 0x63)),
+						summary(leg(22, Direction.ONE), lastPaid(2026, 3, 8, 0, 43), 4, 0x02, false, 22, Direction.TWO,
+								0x63)),
 				new Encoded<>("1F013518160B010D01D2020000620091", summary(leg(31, Direction.ONE),
-						lastPaid(2026, 8, 24, 22, 11), 1, CardType.LAZO_TOP_UP, true, 210, Direction.TWO, 0x62)));
+						lastPaid(2026, 8, 24, 22, 11), 1, 0x0d, true, 210, Direction.TWO, 0x62)));
 	}
 
 	private static Transaction journey(int amount, Stop stop, int route, Direction direction, int dutyTrip,
 			CardDateTime createdAt, int sequence) {
-		return new Transaction(CardType.AVANZA_TOP_UP, 0, amount, 1, stop, new Route(route),
-				new TransactionKind.Journey(direction), dutyTrip, createdAt, sequence);
+		return new Transaction(0x02, 0, amount, 1, stop, new Route(route), new TransactionKind.Journey(direction),
+				dutyTrip, createdAt, sequence);
 	}
 
 	private static JourneySummary summary(Optional<JourneySummary.Leg> previous, JourneySummary.LastPaid lastPaidAt,
-			int consecutivePayments, CardType cardType, boolean free, int route, Direction direction,
-			int transfersLeft) {
-		return new JourneySummary(previous, lastPaidAt, consecutivePayments, cardType, free, new Route(route),
+			int consecutivePayments, int productId, boolean free, int route, Direction direction, int transfersLeft) {
+		return new JourneySummary(previous, lastPaidAt, consecutivePayments, productId, free, new Route(route),
 				direction, transfersLeft);
 	}
 

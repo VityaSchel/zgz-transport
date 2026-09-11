@@ -39,7 +39,7 @@ use zgz_transport::{
 
 fn main() -> Result<(), zgz_transport::Error> {
 	let ride = Transaction {
-		card_type: CardType::AvanzaTopUp,
+		product_id: 0x02,
 		network_flag: 0,
 		amount: 550,
 		consecutive_payments: 1,

@@ -73,12 +73,32 @@ fn checks_the_timestamp_before_the_kind() {
 }
 
 #[test]
-fn checks_the_card_type_before_the_timestamp() {
+fn keeps_a_product_id_that_is_no_card_type() {
 	let mut block: [u8; 16] = array(transactions()[0].0);
-	block[0] = 0x0b;
-	block[12] = 24;
-	assert_eq!(
-		Transaction::decode(&block),
-		Err(Error::UnknownCardTypeByte(0x0b))
+	block[0] = 0x06;
+	let decoded = Transaction::decode(&block).unwrap();
+	assert_eq!(decoded.product_id, 0x06);
+	assert_eq!(decoded.encode(), Ok(block));
+}
+
+#[test]
+fn tells_transfers_from_personal_and_gated_journeys() {
+	let (_, transfer) = transactions()[10];
+	assert!(transfer.is_transfer());
+	assert!(!transfer.is_check_out());
+	assert!(
+		!Transaction {
+			product_id: 0x06,
+			network_flag: 2,
+			..transfer
+		}
+		.is_transfer()
+	);
+	assert!(
+		!Transaction {
+			consecutive_payments: 0,
+			..transfer
+		}
+		.is_transfer()
 	);
 }

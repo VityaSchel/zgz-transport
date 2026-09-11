@@ -49,9 +49,8 @@ export {
 } from "./transaction.ts";
 export {
 	CardType,
-	cardTypeByte,
-	cardTypeFromByte,
 	decodeCardType,
 	encodeCardType,
+	isPersonalCardType,
 	type CardTypeName,
 } from "./type.ts";

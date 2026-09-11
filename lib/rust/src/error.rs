@@ -37,8 +37,6 @@ pub enum Error {
 	IdFormat,
 	/// Bytes 0 to 2 of block 1 are no known product.
 	UnknownCardType(u32),
-	/// The first byte of block 1 matches no known product.
-	UnknownCardTypeByte(u8),
 	/// A direction byte is neither 1 nor 2.
 	Direction(u8),
 	/// Byte 8 of a transaction is neither a direction nor a top up.
@@ -74,7 +72,6 @@ impl fmt::Display for Error {
 				f.write_str("id must be two capital letters and an even count of 6 to 26 digits")
 			}
 			Self::UnknownCardType(value) => write!(f, "unknown card type {value:x}"),
-			Self::UnknownCardTypeByte(byte) => write!(f, "unknown card type byte {byte}"),
 			Self::Direction(byte) => write!(f, "direction must be 1 or 2, got {byte}"),
 			Self::TransactionKind(byte) => {
 				write!(f, "transaction kind byte must be 1, 2 or 8, got {byte}")
