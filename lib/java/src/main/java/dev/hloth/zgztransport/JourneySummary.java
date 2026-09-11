@@ -103,9 +103,9 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 	}
 
 	/**
-	 * The block 10 stamp of one personal card, its only non-zero byte {@code [07]} a
-	 * product id. Another personal card keeps block 10 all zero, so neither value can
-	 * be relied on. {@link #decode(byte[])} rejects it.
+	 * The block 10 stamp of one personal card, its only non-zero byte {@code [07]}
+	 * a product id. Another personal card keeps block 10 all zero, so neither value
+	 * can be relied on. {@link #decode(byte[])} rejects it.
 	 *
 	 * @return the sixteen bytes
 	 */

@@ -46,9 +46,8 @@ pub struct JourneySummary {
 }
 
 impl JourneySummary {
-	/// The block 10 stamp of one personal card, its only non-zero byte [07] a product id. Another
-	/// personal card keeps block 10 all zero, so neither value can be relied on.
-	/// [`decode`](Self::decode) rejects it.
+	/// The block 10 stamp of a personal card: byte 7 a product id, the rest zero. Other personal
+	/// cards keep block 10 all zero instead. [`decode`](Self::decode) rejects it.
 	pub const PERSONAL: Block = [
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x0a,

@@ -14,8 +14,8 @@ final class Keys {
 	}
 
 	/**
-	 * Sectors 9 to 15 hold no data, but their trailers were still written: they carry
-	 * the well-known NXP sample keys with access bytes {@code 7F0788}.
+	 * Sectors 9 to 15 hold no data, but their trailers were still written: they
+	 * carry the well-known NXP sample keys with access bytes {@code 7F0788}.
 	 */
 	static final List<Range> AVANZA_TOP_UP = List.of(new Range(0, 8, AVANZA_OPERATOR), new Range(9, 15, AVANZA_UNUSED));
 

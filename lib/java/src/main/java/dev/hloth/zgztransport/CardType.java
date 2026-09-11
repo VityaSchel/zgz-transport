@@ -18,8 +18,8 @@ public enum CardType implements Encodable {
 	 */
 	AVANZA_PERSONAL(0x0a_97_75, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
 	/**
-	 * A personal Avanza Tarjeta Bus printed "Abono de transporte". What separates it
-	 * from {@link #AVANZA_PERSONAL} is unknown; both behave the same here.
+	 * A personal Avanza Tarjeta Bus printed "Abono de transporte". What separates
+	 * it from {@link #AVANZA_PERSONAL} is unknown; both behave the same here.
 	 */
 	AVANZA_PERSONAL_ABONO(0x0a_98_da, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
 	/** A balance top up Lazo card. */
