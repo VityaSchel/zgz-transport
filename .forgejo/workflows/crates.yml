@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: ["publish", "hetzner"]
+    runs-on: ["debian", "4c8g", "hetzner"]
     timeout-minutes: 20
 
     defaults:
