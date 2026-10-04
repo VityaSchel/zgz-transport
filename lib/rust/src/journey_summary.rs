@@ -41,8 +41,9 @@ pub struct JourneySummary {
 	pub route: Route,
 	/// Direction of the current journey.
 	pub direction: Direction,
-	/// `0x63` after a paid journey, `0x62` after a free transfer.
-	pub transfers_left: u8,
+	/// `0x63` after a paid journey and `0x62` after a free transfer on the known card types. Other
+	/// values are unexplained.
+	pub paid_marker: u8,
 }
 
 impl JourneySummary {
@@ -73,7 +74,7 @@ impl JourneySummary {
 			direction,
 			reserved11,
 			reserved12,
-			transfers_left,
+			paid_marker,
 			reserved14,
 			_,
 		] = *block;
@@ -100,7 +101,7 @@ impl JourneySummary {
 			free: free == 1,
 			route: Route(route),
 			direction: Direction::try_from(direction)?,
-			transfers_left,
+			paid_marker,
 		})
 	}
 
@@ -133,7 +134,7 @@ impl JourneySummary {
 			u8::from(self.direction),
 			0,
 			0,
-			self.transfers_left,
+			self.paid_marker,
 			0,
 			0,
 		]))

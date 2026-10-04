@@ -41,8 +41,13 @@ pub enum Error {
 	Direction(u8),
 	/// Byte 8 of a transaction is neither a direction nor a top up.
 	TransactionKind(u8),
-	/// Block 0 carries neither a 1K nor a 4K SAK.
-	Sak,
+	/// Block 0 matches no known chip at either UID length.
+	Sak {
+		/// Byte 5 of block 0, where a 4-byte UID puts the SAK.
+		byte_5: u8,
+		/// Byte 7 of block 0, where a 7-byte UID puts the SAK.
+		byte_7: u8,
+	},
 	/// The dump is not whole blocks or ends before block 33.
 	DumpSize {
 		/// Bytes up to and including block 33.
@@ -76,7 +81,10 @@ impl fmt::Display for Error {
 			Self::TransactionKind(byte) => {
 				write!(f, "transaction kind byte must be 1, 2 or 8, got {byte}")
 			}
-			Self::Sak => f.write_str("block 0 carries neither a 1K nor a 4K SAK"),
+			Self::Sak { byte_5, byte_7 } => write!(
+				f,
+				"block 0 matches no known chip: byte 7 is {byte_7:02x} and byte 5 is {byte_5:02x}, expected SAK 18 with ATQA 0200 or SAK 88 with ATQA 0400 after the UID, and a valid BCC on a 4-byte UID"
+			),
 			Self::DumpSize { minimum, got } => write!(
 				f,
 				"dump must be whole blocks and at least {minimum} bytes, got {got}"

@@ -1,7 +1,8 @@
 use crate::bytes::{BLOCK_SIZE, Block, check_checksum, is_zero, with_checksum};
 use crate::error::{Error, Result};
+use crate::uid::Chip;
 
-/// Card types identified by bytes [0-2] of block 1.
+/// Card types identified by bytes 0 to 2 of block 1.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardType {
 	/// Balance top-up Avanza card, `02699F`.
@@ -12,16 +13,21 @@ pub enum CardType {
 	/// two personal card types is unknown.
 	AvanzaPersonalAbono,
 	/// Balance top-up Lazo card, `0D371F`.
-	LazoTopUp,
+	LazoTopUp371F,
+	/// Balance top-up Lazo card, `0D375F`. What separates it from
+	/// [`LazoTopUp371F`](Self::LazoTopUp371F) is unknown: a card carrying it holds the same keys,
+	/// balance, transaction ring and empty product sectors.
+	LazoTopUp375F,
 }
 
 impl CardType {
 	/// Every known card type.
-	pub const ALL: [Self; 4] = [
+	pub const ALL: [Self; 5] = [
 		Self::AvanzaTopUp,
 		Self::AvanzaPersonal,
 		Self::AvanzaPersonalAbono,
-		Self::LazoTopUp,
+		Self::LazoTopUp371F,
+		Self::LazoTopUp375F,
 	];
 
 	/// Bytes 0-2 of block 1.
@@ -31,7 +37,17 @@ impl CardType {
 			Self::AvanzaTopUp => 0x02_69_9f,
 			Self::AvanzaPersonal => 0x0a_97_75,
 			Self::AvanzaPersonalAbono => 0x0a_98_da,
-			Self::LazoTopUp => 0x0d_37_1f,
+			Self::LazoTopUp371F => 0x0d_37_1f,
+			Self::LazoTopUp375F => 0x0d_37_5f,
+		}
+	}
+
+	/// The chip the card is built on.
+	#[must_use]
+	pub const fn chip(self) -> Chip {
+		match self {
+			Self::AvanzaTopUp | Self::AvanzaPersonal | Self::AvanzaPersonalAbono => Chip::Classic1K,
+			Self::LazoTopUp371F | Self::LazoTopUp375F => Chip::Classic4K,
 		}
 	}
 

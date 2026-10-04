@@ -44,7 +44,13 @@ fn displays_every_variant() {
 			Error::TransactionKind(0),
 			"transaction kind byte must be 1, 2 or 8, got 0",
 		),
-		(Error::Sak, "block 0 carries neither a 1K nor a 4K SAK"),
+		(
+			Error::Sak {
+				byte_5: 0x18,
+				byte_7: 0x00,
+			},
+			"block 0 matches no known chip: byte 7 is 00 and byte 5 is 18, expected SAK 18 with ATQA 0200 or SAK 88 with ATQA 0400 after the UID, and a valid BCC on a 4-byte UID",
+		),
 		(
 			Error::DumpSize {
 				minimum: 544,
@@ -60,10 +66,12 @@ fn displays_every_variant() {
 
 #[test]
 fn is_a_copy_hashable_std_error() {
-	let error: Box<dyn std::error::Error> = Box::new(Error::Sak);
-	assert_eq!(error.to_string(), Error::Sak.to_string());
-	let set: HashSet<Error> = [Error::Sak, Error::Sak, Error::BalanceCopy]
-		.into_iter()
-		.collect();
+	let sak = Error::Sak {
+		byte_5: 0x18,
+		byte_7: 0x00,
+	};
+	let error: Box<dyn std::error::Error> = Box::new(sak);
+	assert_eq!(error.to_string(), sak.to_string());
+	let set: HashSet<Error> = [sak, sak, Error::BalanceCopy].into_iter().collect();
 	assert_eq!(set.len(), 2);
 }

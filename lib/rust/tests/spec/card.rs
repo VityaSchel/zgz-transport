@@ -9,8 +9,10 @@ use crate::products::{METADATA, SUBSCRIPTION};
 use crate::hex::{array, hex};
 
 pub const BLOCKS: usize = 36;
-pub const AVANZA_BLOCK_0: &str = "1D68C3A9BF880400C8000020000000AB";
+pub const AVANZA_BLOCK_0: &str = "1D68C3A91F880400C8000020000000AB";
 pub const LAZO_BLOCK_0: &str = "0468C3A9BF12341802008100000023AA";
+pub const LAZO_FOUR_BYTE_BLOCK_0: &str = "0468C3A906180200800000000000AA23";
+pub const TRAILING_4K_BLOCKS: usize = 220;
 
 pub fn dump(blocks: &[(usize, Block)]) -> Vec<u8> {
 	let mut dump = vec![0; BLOCKS * BLOCK_SIZE];
@@ -69,7 +71,7 @@ fn decodes_a_top_up_card() {
 			.unwrap()
 	};
 	assert_eq!(card.uid, Uid::Single(array("1D68C3A9")));
-	assert_eq!(card.uid.chip(), Chip::Classic1K);
+	assert_eq!(card.chip, Chip::Classic1K);
 	assert_eq!(card.uid.to_string(), "1D68C3A9");
 	assert_eq!(card.card_type, CardType::AvanzaTopUp);
 	assert_eq!(card.id.to_string(), "BE123456");
@@ -80,7 +82,7 @@ fn decodes_a_top_up_card() {
 	);
 	assert_eq!(
 		card.journey_summary,
-		Some(JourneySummary::decode(&block(10)).unwrap())
+		Some(JourneySummary::decode(&block(10)))
 	);
 	assert_eq!(card.products, [None, None]);
 }
@@ -90,17 +92,17 @@ fn decodes_a_lazo_card_without_journeys() {
 	let balance = Balance(600).encode().unwrap();
 	let mut dump = dump(&[
 		(0, array(LAZO_BLOCK_0)),
-		(1, CardType::LazoTopUp.encode()),
+		(1, CardType::LazoTopUp371F.encode()),
 		(2, id("CT123456")),
 		(8, balance),
 		(9, balance),
 	]);
-	dump.extend(vec![0; 220 * BLOCK_SIZE]);
+	dump.extend(vec![0; TRAILING_4K_BLOCKS * BLOCK_SIZE]);
 	let card = Card::decode(&dump).unwrap();
 	assert_eq!(card.uid, Uid::Double(array("0468C3A9BF1234")));
-	assert_eq!(card.uid.chip(), Chip::Classic4K);
+	assert_eq!(card.chip, Chip::Classic4K);
 	assert_eq!(card.uid.as_bytes(), hex("0468C3A9BF1234"));
-	assert_eq!(card.card_type, CardType::LazoTopUp);
+	assert_eq!(card.card_type, CardType::LazoTopUp371F);
 	assert_eq!(card.id.to_string(), "CT123456");
 	assert_eq!(card.balance, Balance(600));
 	assert_eq!(card.transactions, []);

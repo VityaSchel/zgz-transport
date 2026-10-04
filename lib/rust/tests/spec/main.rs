@@ -3,6 +3,7 @@
 mod balance;
 mod card;
 mod card_errors;
+mod card_four_byte_uid;
 mod card_type;
 mod date;
 mod date_time;

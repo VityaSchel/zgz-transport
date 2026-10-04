@@ -23,7 +23,7 @@ pub fn journey_summaries() -> Vec<(&'static str, JourneySummary)> {
 	               free,
 	               route,
 	               direction,
-	               transfers_left| {
+	               paid_marker| {
 		JourneySummary {
 			previous,
 			last_paid_at,
@@ -32,7 +32,7 @@ pub fn journey_summaries() -> Vec<(&'static str, JourneySummary)> {
 			free,
 			route: Route(route),
 			direction,
-			transfers_left,
+			paid_marker,
 		}
 	};
 	let avanza = 0x02;

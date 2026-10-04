@@ -9,7 +9,7 @@ use crate::journey_summary::JourneySummary;
 use crate::subscription::Subscription;
 use crate::subscription_metadata::SubscriptionMetadata;
 use crate::transaction::Transaction;
-use crate::uid::Uid;
+use crate::uid::{Chip, Uid};
 
 /// A subscription product of a personal card.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -24,6 +24,8 @@ pub struct Product {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Card {
 	/// Block 0.
+	pub chip: Chip,
+	/// Block 0; its length does not follow from the chip.
 	pub uid: Uid,
 	/// Block 1.
 	pub card_type: CardType,
@@ -33,8 +35,9 @@ pub struct Card {
 	pub balance: Balance,
 	/// The last six transactions, oldest first.
 	pub transactions: Vec<Transaction>,
-	/// Block 10; absent on personal cards and before the first journey.
-	pub journey_summary: Option<JourneySummary>,
+	/// Block 10; absent on personal cards and before the first journey, `Err` when the block is
+	/// written but does not decode, carrying the error [`JourneySummary::decode`] gave.
+	pub journey_summary: Option<Result<JourneySummary>>,
 	/// Sector 3 (blocks 12 and 13) then sector 4 (blocks 16 and 17); both absent on top up cards.
 	pub products: [Option<Product>; 2],
 }
@@ -43,7 +46,8 @@ const LAST_USED_BLOCK: usize = 33;
 
 impl Card {
 	/// Decodes a raw dump of either card, consecutive 16-byte blocks starting at block 0.
-	/// Partial dumps are accepted as long as they reach block 33.
+	/// Partial dumps are accepted as long as they reach block 33. A written block 10 that does not
+	/// decode is kept in [`journey_summary`](Self::journey_summary) instead of failing the card.
 	///
 	/// # Errors
 	/// [`Error::DumpSize`](crate::Error::DumpSize), [`Error::Sak`](crate::Error::Sak), [`Error::BalanceBlocksDiffer`](crate::Error::BalanceBlocksDiffer) or any error of the blocks decoded.
@@ -56,7 +60,7 @@ impl Card {
 			});
 		}
 		let (blocks, _) = dump.as_chunks::<BLOCK_SIZE>();
-		let uid = Uid::decode(&blocks[0])?;
+		let (uid, chip) = Uid::decode(&blocks[0])?;
 		if blocks[8] != blocks[9] {
 			return Err(Error::BalanceBlocksDiffer);
 		}
@@ -73,6 +77,7 @@ impl Card {
 			}))
 		};
 		Ok(Self {
+			chip,
 			uid,
 			card_type,
 			id: CardId::decode(&blocks[2])?,
@@ -83,7 +88,7 @@ impl Card {
 			journey_summary: if personal || is_zero(&blocks[10]) {
 				None
 			} else {
-				Some(JourneySummary::decode(&blocks[10])?)
+				Some(JourneySummary::decode(&blocks[10]))
 			},
 			products: [product(3)?, product(4)?],
 		})

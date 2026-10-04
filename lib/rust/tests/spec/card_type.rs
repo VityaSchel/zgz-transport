@@ -1,15 +1,16 @@
-use zgz_transport::{CardType, Error};
+use zgz_transport::{CardType, Chip, Error};
 
 use crate::hex::array;
 
-const CASES: [(CardType, &str); 4] = [
+const CASES: [(CardType, &str); 5] = [
 	(CardType::AvanzaTopUp, "02699F000000000000000000000000F4"),
 	(CardType::AvanzaPersonal, "0A9775000000000000000000000000E8"),
 	(
 		CardType::AvanzaPersonalAbono,
 		"0A98DA00000000000000000000000048",
 	),
-	(CardType::LazoTopUp, "0D371F00000000000000000000000025"),
+	(CardType::LazoTopUp371F, "0D371F00000000000000000000000025"),
+	(CardType::LazoTopUp375F, "0D375F00000000000000000000000065"),
 ];
 
 #[test]
@@ -42,7 +43,21 @@ fn maps_values_to_types() {
 fn tells_personal_types_from_top_up_ones() {
 	assert_eq!(
 		CardType::ALL.map(CardType::is_personal),
-		[false, true, true, false]
+		[false, true, true, false, false]
+	);
+}
+
+#[test]
+fn tells_the_chip_of_each_type() {
+	assert_eq!(
+		CardType::ALL.map(CardType::chip),
+		[
+			Chip::Classic1K,
+			Chip::Classic1K,
+			Chip::Classic1K,
+			Chip::Classic4K,
+			Chip::Classic4K,
+		]
 	);
 }
 
