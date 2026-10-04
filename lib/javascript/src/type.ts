@@ -6,15 +6,18 @@ import {
 	withChecksum,
 } from "./bytes.ts";
 
-/**
- * Known card types and their value in bytes 0 to 2 of block 1. `AvanzaPersonalAbono` is printed
- * "Abono de transporte"; what separates it from `AvanzaPersonal` is unknown.
- */
+/** Known card types and their value in bytes 0 to 2 of block 1. */
 export const CardType = {
 	AvanzaTopUp: 0x02699f,
 	AvanzaPersonal: 0x0a9775,
+	/** Printed "Abono de transporte"; what separates it from `AvanzaPersonal` is unknown. */
 	AvanzaPersonalAbono: 0x0a98da,
-	LazoTopUp: 0x0d371f,
+	LazoTopUp371F: 0x0d371f,
+	/**
+	 * What separates it from `LazoTopUp371F` is unknown: a card carrying it holds the same keys,
+	 * the same balance and transaction ring, and empty product sectors.
+	 */
+	LazoTopUp375F: 0x0d375f,
 } as const;
 
 /** Name of a known card type. */

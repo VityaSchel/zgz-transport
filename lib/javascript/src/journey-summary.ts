@@ -28,8 +28,11 @@ export type JourneySummary = {
 	route: number;
 	/** Direction of the current journey. */
 	direction: Direction;
-	/** `0x63` after a paid journey, `0x62` after a free transfer. */
-	transfersLeft: number;
+	/**
+	 * `0x63` after a paid journey and `0x62` after a free transfer on the known card types; other
+	 * values are unexplained. Raw, never validated.
+	 */
+	paidMarker: number;
 };
 
 /**
@@ -78,7 +81,7 @@ export function decodeJourneySummary(block: Uint8Array): JourneySummary {
 		free: block[8] === 1,
 		route: block[9]!,
 		direction: direction(block[10]!, "direction"),
-		transfersLeft: block[13]!,
+		paidMarker: block[13]!,
 	};
 }
 
@@ -89,7 +92,7 @@ export function encodeJourneySummary(summary: JourneySummary): Uint8Array {
 	assertInRange("consecutive payments", summary.consecutivePayments, 0, 0xff);
 	assertInRange("product id", summary.productId, 0, 0xff);
 	assertInRange("route", summary.route, 0, 0xff);
-	assertInRange("transfers left", summary.transfersLeft, 0, 0xff);
+	assertInRange("paid marker", summary.paidMarker, 0, 0xff);
 	const block = new Uint8Array(BLOCK_SIZE);
 	if (summary.previous) {
 		assertInRange("previous route", summary.previous.route, 1, 0xff);
@@ -104,6 +107,6 @@ export function encodeJourneySummary(summary: JourneySummary): Uint8Array {
 	block[8] = summary.free ? 1 : 0;
 	block[9] = summary.route;
 	block[10] = summary.direction;
-	block[13] = summary.transfersLeft;
+	block[13] = summary.paidMarker;
 	return withChecksum(block);
 }

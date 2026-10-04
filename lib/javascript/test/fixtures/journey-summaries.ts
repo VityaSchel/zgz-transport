@@ -12,7 +12,7 @@ export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 				free: false,
 				route: 210,
 				direction: 2,
-				transfersLeft: 0x63,
+				paidMarker: 0x63,
 			},
 		},
 		{
@@ -25,7 +25,7 @@ export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 				free: false,
 				route: 210,
 				direction: 2,
-				transfersLeft: 0x63,
+				paidMarker: 0x63,
 			},
 		},
 		{
@@ -38,7 +38,7 @@ export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 				free: false,
 				route: 22,
 				direction: 1,
-				transfersLeft: 0x63,
+				paidMarker: 0x63,
 			},
 		},
 		{
@@ -51,7 +51,7 @@ export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 				free: false,
 				route: 22,
 				direction: 2,
-				transfersLeft: 0x63,
+				paidMarker: 0x63,
 			},
 		},
 		{
@@ -64,7 +64,7 @@ export const journeySummaries: { encoded: string; decoded: JourneySummary }[] =
 				free: true,
 				route: 210,
 				direction: 2,
-				transfersLeft: 0x62,
+				paidMarker: 0x62,
 			},
 		},
 	];

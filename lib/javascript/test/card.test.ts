@@ -1,15 +1,21 @@
 import { expect, it } from "bun:test";
 import { encodeBalance } from "../src/balance.ts";
+import { withChecksum } from "../src/bytes.ts";
 import { decodeCard } from "../src/card.ts";
 import { encodeId } from "../src/id.ts";
-import { PERSONAL_JOURNEY_SUMMARY } from "../src/journey-summary.ts";
+import {
+	decodeJourneySummary,
+	encodeJourneySummary,
+	PERSONAL_JOURNEY_SUMMARY,
+} from "../src/journey-summary.ts";
 import { encodeTransaction } from "../src/transaction.ts";
 import { encodeCardType } from "../src/type.ts";
 import { journeySummaries } from "./fixtures/journey-summaries.ts";
 import { personalJourney, transactions } from "./fixtures/transactions.ts";
 
-const AVANZA_BLOCK_0 = "1D68C3A9BF880400C8000020000000AB";
+const AVANZA_BLOCK_0 = "1D68C3A91F880400C8000020000000AB";
 const LAZO_BLOCK_0 = "0468C3A9BF12341802008100000023AA";
+const LAZO_BLOCK_0_SHORT_UID = "0468C3A906180200800000000000AA23";
 const METADATA = "1101342F00210000001E002100000015";
 const SUBSCRIPTION = "342F344E0000010203043441081E0006";
 const PAID_RIDE = "0200022601817E1F0211348410163003";
@@ -43,6 +49,12 @@ function topUpCard(balance: number, live: string, archive: string[]) {
 	return dump(blocks);
 }
 
+function undecodableSummary() {
+	const block = encodeJourneySummary(journeySummaries[2]!.decoded);
+	block[10] = 0x3d;
+	return withChecksum(block);
+}
+
 it("decodes a top up card", () => {
 	const card = decodeCard(topUpCard(4450, record(7), [4, 5, 6].map(record)));
 	expect(card.chip).toBe("1K");
@@ -53,7 +65,10 @@ it("decodes a top up card", () => {
 	expect(card.transactions).toEqual(
 		[4, 5, 6, 7].map((index) => transactions[index]!.decoded),
 	);
-	expect(card.journeySummary).toEqual(journeySummaries[2]!.decoded);
+	expect(card.journeySummary).toEqual({
+		state: "read",
+		summary: journeySummaries[2]!.decoded,
+	});
 	expect(card.products).toEqual([]);
 });
 
@@ -96,13 +111,18 @@ it("decodes personal cards of both types", () => {
 	}
 });
 
-it("decodes a Lazo card and reads the SAK at the 4K offset first", () => {
+it("decodes a Lazo card and reads the SAK at the 7-byte offset first", () => {
 	const balance = encodeBalance(600);
-	for (const block0 of [LAZO_BLOCK_0, "0468C3A9BF88341802008100000023AA"]) {
+	const sevenByte = [
+		LAZO_BLOCK_0,
+		"0468C3A9BF88341802008100000023AA",
+		"0468C3A9BF18341802008100000023AA",
+	];
+	for (const block0 of sevenByte) {
 		const card = decodeCard(
 			dump({
 				0: block0,
-				1: encodeCardType("LazoTopUp"),
+				1: encodeCardType("LazoTopUp371F"),
 				2: encodeId("CT123456"),
 				8: balance,
 				9: balance,
@@ -115,6 +135,58 @@ it("decodes a Lazo card and reads the SAK at the 4K offset first", () => {
 	}
 });
 
+it("decodes a Lazo card with a 4-byte UID on a 4K chip", () => {
+	const balance = encodeBalance(10890);
+	const card = decodeCard(
+		dump({
+			0: LAZO_BLOCK_0_SHORT_UID,
+			1: encodeCardType("LazoTopUp375F"),
+			2: encodeId("CT123456"),
+			5: record(7),
+			8: balance,
+			9: balance,
+			10: undecodableSummary(),
+		}),
+	);
+	expect(card.chip).toBe("4K");
+	expect(card.uid).toBe("0468C3A9");
+	expect(card.type).toBe("LazoTopUp375F");
+	expect(card.balance).toBe(10890);
+	expect(card.transactions).toEqual([transactions[7]!.decoded]);
+	expect(card.journeySummary?.state).toBe("unknown");
+});
+
+it("keeps the rest of the card when block 10 does not decode", () => {
+	const balance = encodeBalance(10890);
+	const block10 = undecodableSummary();
+	const card = decodeCard(
+		dump({
+			0: LAZO_BLOCK_0,
+			1: encodeCardType("LazoTopUp375F"),
+			2: encodeId("CT123456"),
+			5: record(7),
+			8: balance,
+			9: balance,
+			10: block10,
+			28: record(4),
+			29: record(5),
+			30: record(6),
+		}),
+	);
+	expect(card.balance).toBe(10890);
+	expect(card.transactions).toEqual(
+		[4, 5, 6, 7].map((index) => transactions[index]!.decoded),
+	);
+	expect(card.journeySummary?.state).toBe("unknown");
+	if (card.journeySummary?.state !== "unknown") throw new Error("read");
+	expect(card.journeySummary.error.message).toBe(
+		"direction must be 1 or 2, got 61",
+	);
+	expect(() => decodeJourneySummary(block10)).toThrow(
+		"direction must be 1 or 2",
+	);
+});
+
 it("rejects malformed dumps", () => {
 	const valid = topUpCard(4450, record(7), []);
 	expect(() => decodeCard(valid.subarray(0, 33 * 16))).toThrow();
@@ -122,7 +194,10 @@ it("rejects malformed dumps", () => {
 	expect(decodeCard(valid.subarray(0, 34 * 16)).balance).toBe(4450);
 	const unknownSak = valid.slice();
 	unknownSak[5] = 0;
-	expect(() => decodeCard(unknownSak)).toThrow("SAK");
+	expect(() => decodeCard(unknownSak)).toThrow("block 0 matches no known chip");
+	const brokenBcc = valid.slice();
+	brokenBcc[4] = brokenBcc[4]! ^ 1;
+	expect(() => decodeCard(brokenBcc)).toThrow("BCC");
 	const differing = valid.slice();
 	differing[9 * 16] = differing[9 * 16]! ^ 1;
 	expect(() => decodeCard(differing)).toThrow("differ");

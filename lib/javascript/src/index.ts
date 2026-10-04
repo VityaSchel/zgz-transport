@@ -6,7 +6,13 @@
  * @module
  */
 export { decodeBalance, encodeBalance, UNITS_PER_EURO } from "./balance.ts";
-export { decodeCard, type Card, type Chip, type Product } from "./card.ts";
+export {
+	decodeCard,
+	type Card,
+	type Chip,
+	type JourneySummarySlot,
+	type Product,
+} from "./card.ts";
 export { decodeDate, encodeDate, type Date16Bit } from "./date.ts";
 export { decodeId, encodeId } from "./id.ts";
 export {

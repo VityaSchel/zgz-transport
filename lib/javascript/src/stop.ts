@@ -7,10 +7,11 @@ import {
 import { TRAM_ROUTE } from "./route.ts";
 
 /**
- * Where a transaction happened. Urban bus stops carry an internal stop id that is scoped to the
- * route rather than shared across the network, tram stops their stop number, and any other
- * operator an id of its own; on Cercanías the low byte looks like the station's position along
- * the line, counting from the far terminus.
+ * Where a transaction happened. Urban bus stops carry an internal stop id that looks like one
+ * network-wide location space rather than one scoped to the route, tram stops the stored value,
+ * which is the stop number times one hundred, and any other operator an id of its own; on
+ * Cercanías the low byte looks like the station's position along the line, counting from the far
+ * terminus.
  */
 export type Stop =
 	| { network: "urban"; id: number }

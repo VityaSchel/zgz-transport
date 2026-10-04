@@ -1,5 +1,6 @@
 import { expect, it } from "bun:test";
 import {
+	CardType,
 	decodeCardType,
 	encodeCardType,
 	isPersonalCardType,
@@ -23,11 +24,22 @@ const cases: { type: CardTypeName; encoded: string; personal: boolean }[] = [
 		personal: true,
 	},
 	{
-		type: "LazoTopUp",
+		type: "LazoTopUp371F",
 		encoded: "0D371F00000000000000000000000025",
 		personal: false,
 	},
+	{
+		type: "LazoTopUp375F",
+		encoded: "0D375F00000000000000000000000065",
+		personal: false,
+	},
 ];
+
+it("covers every known card type", () => {
+	expect(cases.map(({ type }) => type).sort()).toEqual(
+		(Object.keys(CardType) as CardTypeName[]).sort(),
+	);
+});
 
 it("decodes card types", () => {
 	for (const { type, encoded } of cases) {

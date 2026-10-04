@@ -2,7 +2,7 @@
 
 Encoder and decoder for the Zaragoza and Aragon transport cards (Avanza Tarjeta Bus, Lazo), based on the reverse-engineered card spec at [https://git.hloth.dev/hloth/zgz-transport](https://git.hloth.dev/hloth/zgz-transport).
 
-Zero dependencies, TypeScript definitions, 3.4KB (gzipped), MIT License. Supports Node.js >= 25.0, Bun, Deno and 2025 browsers.
+Zero dependencies, TypeScript definitions, 3.6KB (gzipped), MIT License. Supports Node.js >= 25.0, Bun, Deno and 2025 browsers.
 
 ## Install
 
