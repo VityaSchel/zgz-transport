@@ -33,9 +33,10 @@ Zaragoza and Aragon Avanza/Lazo bus & tram public transport card full up-to-date
 		- [Subscription](#subscription)
 	- [Unconfirmed](#unconfirmed)
 		- [Byte 09 of a transaction](#byte-09-of-a-transaction)
-		- [Route ids 152 and 251](#route-ids-152-and-251)
+		- [Route ids 150, 152 and 251](#route-ids-150-152-and-251)
 		- [Cercanias](#cercanias)
 		- [Stop ids](#stop-ids)
+		- [Block 10 on a 0D375F card](#block-10-on-a-0d375f-card)
 		- [Block 24](#block-24)
 		- [Block 4](#block-4)
 		- [Subscription blocks](#subscription-blocks)
@@ -59,9 +60,11 @@ Every sector has two keys (Key A and Key B) that control access to its blocks, a
 | ------- | ----------------------------------------- | ----------------------------------------------------- |
 | Chip    | MIFARE Classic 1K                         | MIFARE Classic 4K                                     |
 | SAK     | `88`                                      | `18`                                                  |
-| UID     | 4 bytes                                   | 7 bytes                                               |
+| UID     | 4 bytes                                   | 4 or 7 bytes                                          |
 | Sectors | 16                                        | 40 (sectors 0-31 with 4 blocks, 32-39 with 16 blocks) |
 | Blocks  | 64                                        | 256                                                   |
+
+A 4-byte UID is followed by a BCC, the XOR of its four bytes; a 7-byte UID has none, so its SAK and ATQA sit two bytes later. Check [07] first: a 7-byte UID can hold a SAK value in [05] by chance.
 
 What is stored inside the blocks is the same on both cards and is documented once under [data structures](#data-structures). Block 1 tells the products apart, see [card type](#card-type). Everything that is still unresolved is collected under [unconfirmed](#unconfirmed).
 
@@ -103,15 +106,15 @@ The user byte is `00` on every Avanza trailer.
 |        | 3     | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                                                                                   | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 1      | 4     | Empty on top up cards, see [block 4](#block-4)<br>[15] XOR of all previous bytes                                                                                                                                                                          | `00000000000000000000000000000000` | Only Key B can write |
 |        | 5     | Latest [transaction log](#transaction-log) entry                                                                                                                                                                                                          | `..,,..,,..,,..,,..,,..,,..,,..,,` | No restrictions      |
-|        | 6     | _Appears_ to always be empty                                                                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions      |
+|        | 6     | Always empty                                                                                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions      |
 |        | 7     | 1st sector's trailer block                                                                                                                                                                                                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 2      | 8     | [Balance](#balance)                                                                                                                                                                                                                                       | `..,,0000..,,FFFF..,,000002FD02FD` | Value block          |
 |        | 9     | Always has the same value as block 8                                                                                                                                                                                                                      | `..,,0000..,,FFFF..,,000002FD02FD` | Value block          |
-|        | 10    | [Journey summary](#journey-summary-block-10), empty on a new card<br>Not maintained on personal cards: all zero, or `000000000000000A000000000000000A`                                                                                   | `..,,..,,..,,..,,..,,..0000..00..` | No restrictions      |
+|        | 10    | [Journey summary](#journey-summary-block-10), empty on a new card<br>Not maintained on personal cards: all zero, or `000000000000000A000000000000000A`                                                                                                    | `..,,..,,..,,..,,..,,..0000..00..` | No restrictions      |
 |        | 11    | 2nd sector's trailer block                                                                                                                                                                                                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 3      | 12    | [Subscription metadata](#subscription-metadata)                                                                                                                                                                                                           | `00000000000000000000000000000000` | Only Key B can write |
 |        | 13    | [Subscription](#subscription) on personal cards                                                                                                                                                                                                           | `00000000000000000000000000000000` | Only Key B can write |
-|        | 14    | Mirror of block 13, not always written; do not rely on the copy                                                                                                            | `00000000000000000000000000000000` | Only Key B can write |
+|        | 14    | Mirror of block 13, not always written; do not rely on the copy                                                                                                                                                                                           | `00000000000000000000000000000000` | Only Key B can write |
 |        | 15    | 3rd sector's trailer block                                                                                                                                                                                                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 4      | 16    | [Subscription metadata](#subscription-metadata) of a second product                                                                                                                                                                                       | `00000000000000000000000000000000` | Only Key B can write |
 |        | 17    | [Subscription](#subscription) of the second product                                                                                                                                                                                                       | `00000000000000000000000000000000` | Only Key B can write |
@@ -131,7 +134,7 @@ The user byte is `00` on every Avanza trailer.
 |        | 31    | 7th sector's trailer block                                                                                                                                                                                                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 | 8      | 32    | See block 28                                                                                                                                                                                                                                              | `..,,..,,..,,..,,..,,..,,..,,..,,` | No restrictions      |
 |        | 33    | See block 28                                                                                                                                                                                                                                              | `..,,..,,..,,..,,..,,..,,..,,..,,` | No restrictions      |
-|        | 34    | Expiration date, a guess; encoding unknown. Usually an empty value block, see below                                                                                                                                                  | `00000000FFFFFFFF0000000000FF00FF` | Value block          |
+|        | 34    | Expiration date, a guess; encoding unknown. Usually an empty value block, see below                                                                                                                                                                       | `00000000FFFFFFFF0000000000FF00FF` | Value block          |
 |        | 35    | 8th sector's trailer block                                                                                                                                                                                                                                | `04000C0F0903..,,..,,0B02070A0409` | _Trailer_            |
 
 Blocks 8, 9 and 34 are value blocks: a 32-bit integer, its bitwise complement, then the integer again, with value block access conditions (Key A can read, decrement, restore and transfer, Key B can also write and increment).
@@ -155,38 +158,51 @@ The chip write-protects block 0; its access bits say `110`, the value block cond
 | 37             | 208-223 | `455D732C385F` | `2426217B3B3B` |
 | 38-39 (unused) | 224-255 | `FFFFFFFFFFFF` | `FFFFFFFFFFFF` |
 
-Sectors 38 and 39 still have the factory default keys and access conditions (`FF0780`).
+Each trailer's three access bytes are fixed per sector:
+
+| Sectors  | Access bytes |
+| -------- | ------------ |
+| 0        | `7B4788`     |
+| 1-2, 7-9 | `7F0788`     |
+| 3-6      | `7E1788`     |
+| 10, 15   | `787788`     |
+| 11-14    | `0F00FF`     |
+| 16-31    | `08778F`     |
+| 32-37    | `787788`     |
+| 38-39    | `FF0780`     |
+
+The user byte is `69` on sectors 0-31 and 38-39, `00` on 32-37. Key B can rewrite every sector's keys and access conditions (trailer access bits `011`) except 38 and 39, which still have the factory default keys and access conditions.
 
 ### Lazo blocks
 
-| Sector | Block                                  | Description                                                                                                                                                                                               | Template                           | Access Conditions             |
-| ------ | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------- |
-| 0      | 0                                      | [00-06] RFID's UID (7 bytes, so no BCC)<br>[07] SAK (`18` for MIFARE Classic 4K)<br>[08-09] ATQA (`0200`)<br>[10-15] manufacturer data; [15] is most likely the last two digits of the manufacturing year | `..,,..,,..,,..1802008100000023..` | Read-only                     |
-|        | 1                                      | [Card type](#card-type)                                                                                                                                                                                   | `..,,..000000000000000000000000,,` | No restrictions               |
-|        | 2                                      | [Card ID](#card-id)                                                                                                                                                                                       | `4354..,,..00000000000000000000..` | Only Key B can write          |
-|        | 3                                      | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                                   | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 1      | 4                                      | _Appears_ to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
-|        | 5                                      | Latest [transaction log](#transaction-log) entry                                                                                                                                                          | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
-|        | 6                                      | _Appears_ to always be empty                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
-|        | 7                                      | 1st sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 2      | 8                                      | [Balance](#balance)                                                                                                                                                                                       | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
-|        | 9                                      | Always has the same value as block 8                                                                                                                                                                      | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
-|        | 10                                     | [Journey summary](#journey-summary-block-10), empty on a new card                                                                                                                                         | `..,,..,,..,,..0D..,,..0000..00..` | No restrictions               |
-|        | 11                                     | 2nd sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 3-6    | 12, 16, 20, 24                         | Empty on top up cards                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
-|        | 13-14, 17-18, 21-22, 25-26             | Empty on top up cards                                                                                                                                                                                     | `00000000000000000000000000000000` | No restrictions               |
-|        | 15, 19, 23, 27                         | Trailer blocks of sectors 3-6                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 7      | 28-30                                  | [Transaction log](#transaction-log) archive slots for sequence counters 0, 1 and 2                                                                                                                        | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
-|        | 31                                     | 7th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 8      | 32-33                                  | [Transaction log](#transaction-log) archive slots for sequence counters 3 and 4                                                                                                                           | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
-|        | 34                                     | Always empty                                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
-|        | 35                                     | 8th sector's trailer block                                                                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
-| 9      | 36-38                                  | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | No restrictions               |
-| 10, 15 | 40-42, 60-62                           | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
-| 11-14  | data blocks 44-46, 48-50, 52-54, 56-58 | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can read and write |
-| 16-31  | data blocks 64-126                     | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Value block                   |
-| 32-37  | data blocks 128-222                    | Empty                                                                                                                                                                                                     | `00000000000000000000000000000000` | Only Key B can write          |
-| 38-39  | data blocks 224-254                    | Empty, never personalized                                                                                                                                                                                 | `00000000000000000000000000000000` | No restrictions               |
+| Sector | Block                                  | Description                                                                                                                                                                                                                                                            | Template                           | Access Conditions             |
+| ------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------- |
+| 0      | 0                                      | [00-06] RFID's UID (7 bytes, so no BCC)<br>[07] SAK (`18` for MIFARE Classic 4K)<br>[08-09] ATQA (`0200`)<br>[10-15] manufacturer data; [15] is most likely the last two digits of the manufacturing year<br>4-byte UID: [00-03] UID, [04] BCC, [05] SAK, [06-07] ATQA | `..,,..,,..,,..1802008100000023..` | Read-only                     |
+|        | 1                                      | [Card type](#card-type)                                                                                                                                                                                                                                                | `..,,..000000000000000000000000,,` | No restrictions               |
+|        | 2                                      | [Card ID](#card-id)                                                                                                                                                                                                                                                    | `4354..,,..00000000000000000000..` | Only Key B can write          |
+|        | 3                                      | [0th sector's trailer block](https://github.com/andrea-peter/nfc_mifare_classic_notes/blob/main/mifare-classic.md#sector-trailer-block)                                                                                                                                | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 1      | 4                                      | Empty on most cards, see [block 4](#block-4)                                                                                                                                                                                                                           | `00000000000000000000000000000000` | No restrictions               |
+|        | 5                                      | Latest [transaction log](#transaction-log) entry                                                                                                                                                                                                                       | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
+|        | 6                                      | Always empty                                                                                                                                                                                                                                                           | `00000000000000000000000000000000` | No restrictions               |
+|        | 7                                      | 1st sector's trailer block                                                                                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 2      | 8                                      | [Balance](#balance)                                                                                                                                                                                                                                                    | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
+|        | 9                                      | Always has the same value as block 8                                                                                                                                                                                                                                   | `..,,0000..,,FFFF..,,000002FD02FD` | No restrictions               |
+|        | 10                                     | [Journey summary](#journey-summary-block-10), empty on a new card                                                                                                                                                                                                      | `..,,..,,..,,..0D..,,..0000..00..` | No restrictions               |
+|        | 11                                     | 2nd sector's trailer block                                                                                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 3-6    | 12, 16, 20, 24                         | Empty on top up cards                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write          |
+|        | 13-14, 17-18, 21-22, 25-26             | Empty on top up cards                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | No restrictions               |
+|        | 15, 19, 23, 27                         | Trailer blocks of sectors 3-6                                                                                                                                                                                                                                          | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 7      | 28-30                                  | [Transaction log](#transaction-log) archive slots for sequence counters 0, 1 and 2                                                                                                                                                                                     | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
+|        | 31                                     | 7th sector's trailer block                                                                                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 8      | 32-33                                  | [Transaction log](#transaction-log) archive slots for sequence counters 3 and 4                                                                                                                                                                                        | `0D..,,..,,..,,..,,..,,..,,..,,..` | No restrictions               |
+|        | 34                                     | Always empty                                                                                                                                                                                                                                                           | `00000000000000000000000000000000` | No restrictions               |
+|        | 35                                     | 8th sector's trailer block                                                                                                                                                                                                                                             | `4E303D402F20..,,..,,243372407C2E` | _Trailer_                     |
+| 9      | 36-38                                  | Empty                                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | No restrictions               |
+| 10, 15 | 40-42, 60-62                           | Empty                                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write          |
+| 11-14  | data blocks 44-46, 48-50, 52-54, 56-58 | Empty                                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can read and write |
+| 16-31  | data blocks 64-126                     | Empty                                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | Value block                   |
+| 32-37  | data blocks 128-222                    | Empty                                                                                                                                                                                                                                                                  | `00000000000000000000000000000000` | Only Key B can write          |
+| 38-39  | data blocks 224-254                    | Empty, never personalized                                                                                                                                                                                                                                              | `00000000000000000000000000000000` | No restrictions               |
 
 The trailer blocks of sectors 9-39 (39, 43, ..., 127, then 143, 159, 175, 191, 207, 223, 239 and 255) hold the keys from the table above.
 
@@ -232,14 +248,15 @@ Block 1 says which product a card is:
 - [03-14] zero
 - [15] XOR of all previous bytes
 
-| Card type                            | Chip              | Block 1 value                    |
-| ------------------------------------ | ----------------- | -------------------------------- |
-| Balance top-up Avanza card           | MIFARE Classic 1K | `02699F000000000000000000000000` |
-| Personal Avanza card                 | MIFARE Classic 1K | `0A9775000000000000000000000000` |
-| Personal Avanza card, second profile | MIFARE Classic 1K | `0A98DA000000000000000000000000` |
-| Balance top-up Lazo card             | MIFARE Classic 4K | `0D371F000000000000000000000000` |
+| Card type                              | Chip              | Block 1 value                    |
+| -------------------------------------- | ----------------- | -------------------------------- |
+| Balance top-up Avanza card             | MIFARE Classic 1K | `02699F000000000000000000000000` |
+| Personal Avanza card                   | MIFARE Classic 1K | `0A9775000000000000000000000000` |
+| Personal Avanza card, second profile   | MIFARE Classic 1K | `0A98DA000000000000000000000000` |
+| Balance top-up Lazo card               | MIFARE Classic 4K | `0D371F000000000000000000000000` |
+| Balance top-up Lazo card, second value | MIFARE Classic 4K | `0D375F000000000000000000000000` |
 
-Block 1 identifies the product, not the card. What separates the two personal values is unknown; cards carrying `0A98DA` are printed "Abono de transporte".
+Block 1 identifies the product, not the card. What separates the two personal values is unknown, and so is what separates the two Lazo values; cards carrying `0A98DA` are printed "Abono de transporte".
 
 Top up cards pay for each journey out of a [balance](#balance); personal cards use a [subscription](#subscription) and never change balance.
 
@@ -289,9 +306,10 @@ Rewritten on every journey, untouched by top ups, so it stays all zero on a card
 - [06] Consecutive payments counter of the current journey, the same as byte [04] of block 5
 - [07] The same product id as byte [00] of a [transaction](#transaction-log)
 - [08] `01` when the current journey was free, `00` when paid
-- [09-10] Line and direction of the current journey
+- [09] Line of the current journey
+- [10] Direction of the current journey, except on `0D375F`, see [block 10 on a 0D375F card](#block-10-on-a-0d375f-card)
 - [11-12] `0000`
-- [13] `63` after a paid journey, `62` after a free transfer
+- [13] `63` after a paid journey, `62` after a free transfer, except on `0D375F`
 - [14] `00`
 - [15] XOR of all previous bytes
 
@@ -301,9 +319,9 @@ A free transfer onto the tram 33 minutes after a paid ride on bus 31, block 5 ab
     pi ?1 amt  cp stop ln dr ?9 date HH MM SS sq
  5: 0D 00 0000 01 05DC D2 02 01 3518 16 2C 20 00
 10: 1F 01 3518 16 0B 01 0D 01 D2 02 0000 62 00 91
-    pl pd date HH MM cp pi fr ln dr 0000 tr 00 xr
+    pl pd date HH MM cp pi fr ln dr 0000 pm 00 xr
     pi = product id          cp = consecutive payments     fr = free flag
-   amt = amount              ln dr = line, direction       tr = 63 paid / 62 free
+   amt = amount              ln dr = line, direction       pm = 63 paid / 62 free
   stop = stop id             pl pd = previous line, direction
   date = date                HH MM SS = time               sq = sequence
     ?1 = byte 01             ?9 = byte 09                  xr = XOR
@@ -350,13 +368,11 @@ On buses it's most likely which trip of the vehicle's daily duty this is, counti
 
 It's incremented through the day, stays same across consecutive payments and across an on-board top up and the ride paid in the same second, repeats at the same hour on different days, and differs widely between routes at one hour. It is neither the stop's position along the route nor the passenger's order at the stop.
 
-On the tram it is something else. On Avanza balance cards it's incrementing by one per validation. On a Lazo card it's `01`. On a personal Avanza card off the Avanza network it's `00`.
+On the tram it is something else: it increments by one per validation on an Avanza balance card and is `01` on a Lazo card. Off the tram a Lazo card's value varies by route; route 150 always writes `01`. On a personal Avanza card off the Avanza network it's `00`.
 
-### Route ids 152 and 251
+### Route ids 150, 152 and 251
 
-None of the three is in Avanza's feed, whose ids stop at 210, and their stop ids are not in the urban or the tram space.
-
-152 and 251 appear only on personal cards and are unidentified.
+None is in Avanza's feed, whose ids stop at 210, and their stop ids are in neither the urban nor the tram space. 152 and 251 appear only on personal cards. 150 charges 810 units where the urban fare is 550, at stops 19, 58, 64 and 3016. All three are unidentified.
 
 ### Cercanias
 
@@ -364,7 +380,7 @@ Cercanías is the Renfe commuter rail that runs under the city. It charges its o
 
 Byte [04] is `00`. Byte [06] looks like the station's position along the line, counting from the far terminal stop. Byte [05] is `00` on the check-in and `23` on the check-out.
 
-Cercanías route IDs gathered so far: 169.
+The only known Cercanías route id is 169.
 
 
 ### Stop ids
@@ -388,9 +404,14 @@ The urban stop id in [05-06] looks like one network-wide location space rather t
 | 30   | `805D`      | `05`    |      |                           |
 | 30   | `806F`      | `0A`    |      |                           |
 | Ci3  | `80AE`      | `03`    |      |                           |
+| Ci3  | `81DB`      | `09`    |      |                           |
+| 44   | `80BE`      | `13`    |      |                           |
 
 The values 1, 3, 4 and 5 appear on unrelated routes and may be placeholders. `A70F` is 9999 with the urban bit set, a sentinel a validator writes when it has no stop configured.
 
+### Block 10 on a 0D375F card
+
+Bytes [00-09] and the XOR follow the [documented layout](#journey-summary-block-10), but [10] holds `3D` where the direction belongs and [13] holds `01` where `63` or `62` belongs. Either [13] carries the direction on this product, or [10] packs it in its low two bits, as `3D` ends in `01`. A journey in direction `02` would tell them apart.
 
 ### Block 24
 
@@ -398,7 +419,7 @@ Empty on most top up cards. On the others it's `0200`, something shaped like a [
 
 ### Block 4
 
-Empty on top up cards, so a non-zero block 4 marks a personal card. On a personal card it is a list of fixed 3-byte records packed from byte 0, one per product: `[product id][unknown byte][sector]`. A single product gives `061203`, two give `060003` then `0A1204`. The middle byte is `12` on a product still valid and `00` on an expired one, which is a guess: only those two values are known.
+Empty on Avanza top up cards, so a non-zero block 4 marks a personal Avanza card. A Lazo top up card can hold `10` in [12], meaning unknown. On a personal card it is a list of fixed 3-byte records packed from byte 0, one per product: `[product id][unknown byte][sector]`. A single product gives `061203`, two give `060003` then `0A1204`. The middle byte is `12` on a product still valid and `00` on an expired one, which is a guess: only those two values are known.
 
 ### Subscription blocks
 
@@ -409,7 +430,7 @@ Personal cards have one product per sector in sectors 3 and 4, each with its own
 - A top up can carry `21` in the sequence byte instead of 0 to 4. It goes into block 33 and does not advance the counter
 - Before a ring has wrapped, an unused archive slot can hold `00000000000000000000000000000004` instead of all zeroes
 - A personal card has four product slots: sectors 3, 4, 5 and 6 carry the same access bytes `70FF08` and operator keys, with blocks 12, 16, 20 and 24 as their heads. Only sectors 3 and 4 are ever occupied
-- Blocks 6, 20, 21, 22, 25 and 26 are always zero, as is every data block of sectors 9 to 15
+- Blocks 20, 21, 22, 25 and 26 are always zero, as is every data block of sectors 9 to 15
 
 ## Implementations
 
