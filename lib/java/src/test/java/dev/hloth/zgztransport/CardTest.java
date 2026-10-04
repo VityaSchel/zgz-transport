@@ -2,6 +2,7 @@ package dev.hloth.zgztransport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -24,7 +25,8 @@ class CardTest {
 		assertEquals(new Balance(4450), card.balance());
 		assertEquals(List.of(log.get(4).decoded(), log.get(5).decoded(), log.get(6).decoded(), log.get(7).decoded()),
 				card.transactions());
-		assertEquals(Optional.of(Fixtures.journeySummaries().get(2).decoded()), card.journeySummary());
+		assertEquals(Optional.of(new JourneySummarySlot.Read(Fixtures.journeySummaries().get(2).decoded())),
+				card.journeySummary());
 		assertEquals(List.of(), card.products());
 	}
 
@@ -34,11 +36,28 @@ class CardTest {
 		Card card = Card.decode(dump);
 		assertEquals(Chip.CLASSIC_4K, card.uid().chip());
 		assertEquals("0468C3A9BF1234", card.uid().toString());
-		assertEquals(CardType.LAZO_TOP_UP, card.cardType());
+		assertEquals(CardType.LAZO_TOP_UP_371F, card.cardType());
 		assertEquals("CT123456", card.id().toString());
 		assertEquals(new Balance(600), card.balance());
 		assertEquals(List.of(), card.transactions());
 		assertEquals(Optional.empty(), card.journeySummary());
+	}
+
+	@Test
+	void decodesALazoCardWithAFourByteUidAndAnUnreadableJourneySummary() {
+		List<Fixtures.Encoded<Transaction>> log = Fixtures.transactions();
+		byte[] dump = Dumps.lazoFourByteUidCard().block(5, Hex.bytes(log.get(7).hex()))
+				.block(10, Fixtures.unreadableJourneySummary()).block(28, Hex.bytes(log.get(6).hex())).build().bytes();
+		Card card = Card.decode(dump);
+		assertEquals(Chip.CLASSIC_4K, card.uid().chip());
+		assertEquals("0468C3A9", card.uid().toString());
+		assertEquals(CardType.LAZO_TOP_UP_375F, card.cardType());
+		assertEquals("CT123457", card.id().toString());
+		assertEquals(new Balance(10890), card.balance());
+		assertEquals(List.of(log.get(6).decoded(), log.get(7).decoded()), card.transactions());
+		JourneySummarySlot slot = card.journeySummary().orElseThrow();
+		assertEquals("direction must be 1 or 2, got 61",
+				assertInstanceOf(JourneySummarySlot.Unknown.class, slot).error().getMessage());
 	}
 
 	@Test

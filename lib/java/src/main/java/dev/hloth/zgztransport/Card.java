@@ -20,12 +20,14 @@ import java.util.Optional;
  * @param transactions
  *            the last six transactions, oldest first
  * @param journeySummary
- *            block 10, absent on a personal card and before the first journey
+ *            block 10, absent on a personal card and before the first journey,
+ *            and {@link JourneySummarySlot.Unknown} when the block is written
+ *            in a way this version does not read
  * @param products
  *            the subscription products, empty on a top up card
  */
 public record Card(Uid uid, CardType cardType, CardId id, Balance balance, List<Transaction> transactions,
-		Optional<JourneySummary> journeySummary, List<Product> products) {
+		Optional<JourneySummarySlot> journeySummary, List<Product> products) {
 
 	/** The first block a dump must reach to hold everything this decodes. */
 	public static final int LAST_USED_BLOCK = 33;
@@ -69,8 +71,8 @@ public record Card(Uid uid, CardType cardType, CardId id, Balance balance, List<
 	 * @return the card
 	 * @throws CardFormatException
 	 *             if the dump stops before block {@value #LAST_USED_BLOCK}, carries
-	 *             no known SAK, holds two different balance blocks, or any block it
-	 *             reads does not decode
+	 *             no known SAK and ATQA, holds two different balance blocks, or any
+	 *             block it reads other than block 10 does not decode
 	 */
 	public static Card decode(Dump dump) {
 		if (dump.blockCount() <= LAST_USED_BLOCK) {
@@ -90,7 +92,7 @@ public record Card(Uid uid, CardType cardType, CardId id, Balance balance, List<
 				TransactionLog.decode(slots), journeySummary(dump, cardType), products(dump, cardType));
 	}
 
-	private static Optional<JourneySummary> journeySummary(Dump dump, CardType cardType) {
+	private static Optional<JourneySummarySlot> journeySummary(Dump dump, CardType cardType) {
 		if (!cardType.recordsJourneySummary()) {
 			return Optional.empty();
 		}
@@ -98,7 +100,11 @@ public record Card(Uid uid, CardType cardType, CardId id, Balance balance, List<
 		if (Bytes.isZero(block, 0, block.length)) {
 			return Optional.empty();
 		}
-		return Optional.of(JourneySummary.decode(block));
+		try {
+			return Optional.of(new JourneySummarySlot.Read(JourneySummary.decode(block)));
+		} catch (CardFormatException unreadable) {
+			return Optional.of(new JourneySummarySlot.Unknown(unreadable));
+		}
 	}
 
 	private static List<Product> products(Dump dump, CardType cardType) {

@@ -15,7 +15,8 @@ class CardTypeTest {
 			new Fixtures.Encoded<>("02699F000000000000000000000000F4", CardType.AVANZA_TOP_UP),
 			new Fixtures.Encoded<>("0A9775000000000000000000000000E8", CardType.AVANZA_PERSONAL),
 			new Fixtures.Encoded<>("0A98DA00000000000000000000000048", CardType.AVANZA_PERSONAL_ABONO),
-			new Fixtures.Encoded<>("0D371F00000000000000000000000025", CardType.LAZO_TOP_UP));
+			new Fixtures.Encoded<>("0D371F00000000000000000000000025", CardType.LAZO_TOP_UP_371F),
+			new Fixtures.Encoded<>("0D375F00000000000000000000000065", CardType.LAZO_TOP_UP_375F));
 
 	@Test
 	void decodesCardTypes() {
@@ -40,7 +41,8 @@ class CardTypeTest {
 		assertEquals(CASES.size(), CardType.values().length);
 		assertEquals(Chip.CLASSIC_1K, CardType.AVANZA_TOP_UP.chip());
 		assertEquals(Chip.CLASSIC_1K, CardType.AVANZA_PERSONAL_ABONO.chip());
-		assertEquals(Chip.CLASSIC_4K, CardType.LAZO_TOP_UP.chip());
+		assertEquals(Chip.CLASSIC_4K, CardType.LAZO_TOP_UP_371F.chip());
+		assertEquals(Chip.CLASSIC_4K, CardType.LAZO_TOP_UP_375F.chip());
 		assertThrows(CardFormatException.class, () -> CardType.ofValue(0xff_ff_ff));
 	}
 
@@ -49,11 +51,13 @@ class CardTypeTest {
 		assertEquals(List.of(), CardType.AVANZA_TOP_UP.productSectors());
 		assertEquals(List.of(3, 4), CardType.AVANZA_PERSONAL.productSectors());
 		assertEquals(List.of(3, 4), CardType.AVANZA_PERSONAL_ABONO.productSectors());
-		assertEquals(List.of(), CardType.LAZO_TOP_UP.productSectors());
+		assertEquals(List.of(), CardType.LAZO_TOP_UP_371F.productSectors());
+		assertEquals(List.of(), CardType.LAZO_TOP_UP_375F.productSectors());
 		assertTrue(CardType.AVANZA_TOP_UP.recordsJourneySummary());
 		assertFalse(CardType.AVANZA_PERSONAL.recordsJourneySummary());
 		assertFalse(CardType.AVANZA_PERSONAL_ABONO.recordsJourneySummary());
-		assertTrue(CardType.LAZO_TOP_UP.recordsJourneySummary());
+		assertTrue(CardType.LAZO_TOP_UP_371F.recordsJourneySummary());
+		assertTrue(CardType.LAZO_TOP_UP_375F.recordsJourneySummary());
 	}
 
 	@Test
@@ -61,7 +65,8 @@ class CardTypeTest {
 		assertFalse(CardType.AVANZA_TOP_UP.isPersonal());
 		assertTrue(CardType.AVANZA_PERSONAL.isPersonal());
 		assertTrue(CardType.AVANZA_PERSONAL_ABONO.isPersonal());
-		assertFalse(CardType.LAZO_TOP_UP.isPersonal());
+		assertFalse(CardType.LAZO_TOP_UP_371F.isPersonal());
+		assertFalse(CardType.LAZO_TOP_UP_375F.isPersonal());
 		for (CardType type : CardType.values()) {
 			assertEquals(type.isPersonal(), !type.productSectors().isEmpty());
 			assertEquals(type.isPersonal(), !type.recordsJourneySummary());
@@ -69,7 +74,7 @@ class CardTypeTest {
 	}
 
 	@Test
-	void rejectsAFifthCardTypeValueLoudly() {
+	void rejectsAnUnknownCardTypeValueLoudly() {
 		byte[] block = Hex.checksummed(Hex.bytes("0A98DB00000000000000000000000000"));
 		CardFormatException thrown = assertThrows(CardFormatException.class, () -> CardType.decode(block));
 		assertEquals("unknown card type 0a98db", thrown.getMessage());

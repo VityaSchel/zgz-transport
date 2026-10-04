@@ -24,7 +24,14 @@ final class Dumps {
 	}
 
 	static Dump.Builder lazoCard() {
-		return Dump.builder(Chip.CLASSIC_4K).block(0, Hex.bytes(Fixtures.LAZO_BLOCK_0)).block(1, CardType.LAZO_TOP_UP)
-				.block(2, CardId.parse("CT123456")).block(8, new Balance(600)).block(9, new Balance(600));
+		return Dump.builder(Chip.CLASSIC_4K).block(0, Hex.bytes(Fixtures.LAZO_BLOCK_0))
+				.block(1, CardType.LAZO_TOP_UP_371F).block(2, CardId.parse("CT123456")).block(8, new Balance(600))
+				.block(9, new Balance(600));
+	}
+
+	static Dump.Builder lazoFourByteUidCard() {
+		return Dump.builder(Chip.CLASSIC_4K).block(0, Hex.bytes(Fixtures.LAZO_FOUR_BYTE_BLOCK_0))
+				.block(1, CardType.LAZO_TOP_UP_375F).block(2, CardId.parse("CT123457")).block(8, new Balance(10890))
+				.block(9, new Balance(10890));
 	}
 }

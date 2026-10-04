@@ -29,9 +29,9 @@ class DumpTest {
 
 	@Test
 	void writesAnyEncodableIntoABlock() {
-		Dump dump = Dump.builder(Chip.CLASSIC_1K).block(1, CardType.LAZO_TOP_UP).block(2, CardId.parse("CT123456"))
+		Dump dump = Dump.builder(Chip.CLASSIC_1K).block(1, CardType.LAZO_TOP_UP_371F).block(2, CardId.parse("CT123456"))
 				.block(8, new Balance(600)).build();
-		assertEquals(CardType.LAZO_TOP_UP, CardType.decode(dump.block(1)));
+		assertEquals(CardType.LAZO_TOP_UP_371F, CardType.decode(dump.block(1)));
 		assertEquals("CT123456", CardId.decode(dump.block(2)).toString());
 		assertEquals(new Balance(600), Balance.decode(dump.block(8)));
 	}

@@ -43,6 +43,24 @@ class JourneySummaryTest {
 	}
 
 	@Test
+	void readsByteThirteenAsARawPaidMarker() {
+		assertEquals(0x63, Fixtures.journeySummaries().get(0).decoded().paidMarker());
+		assertEquals(0x62, Fixtures.journeySummaries().get(4).decoded().paidMarker());
+		byte[] block = Hex.bytes(Fixtures.journeySummaries().get(0).hex());
+		block[13] = 0x01;
+		JourneySummary unexplained = JourneySummary.decode(Hex.checksummed(block));
+		assertEquals(0x01, unexplained.paidMarker());
+		assertArrayEquals(block, unexplained.encode());
+	}
+
+	@Test
+	void staysStrictOnTheBlockTheCardDecoderKeepsAsUnknown() {
+		byte[] block = Fixtures.unreadableJourneySummary();
+		CardFormatException thrown = assertThrows(CardFormatException.class, () -> JourneySummary.decode(block));
+		assertEquals("direction must be 1 or 2, got 61", thrown.getMessage());
+	}
+
+	@Test
 	void rejectsNonZeroReservedBytes() {
 		for (int index : new int[]{11, 12, 14}) {
 			byte[] block = Hex.bytes(Fixtures.journeySummaries().get(0).hex());

@@ -5,8 +5,9 @@ import java.util.Optional;
 
 final class Fixtures {
 
-	static final String AVANZA_BLOCK_0 = "1D68C3A9BF880400C8000020000000AB";
+	static final String AVANZA_BLOCK_0 = "1D68C3A91F880400C8000020000000AB";
 	static final String LAZO_BLOCK_0 = "0468C3A9BF12341802008100000023AA";
+	static final String LAZO_FOUR_BYTE_BLOCK_0 = "0468C3A906180200800000000000AA23";
 	static final String METADATA = "1101342F00210000001E002100000015";
 	static final String SUBSCRIPTION = "342F344E0000010203043441081E0006";
 
@@ -80,9 +81,21 @@ final class Fixtures {
 	}
 
 	private static JourneySummary summary(Optional<JourneySummary.Leg> previous, JourneySummary.LastPaid lastPaidAt,
-			int consecutivePayments, int productId, boolean free, int route, Direction direction, int transfersLeft) {
+			int consecutivePayments, int productId, boolean free, int route, Direction direction, int paidMarker) {
 		return new JourneySummary(previous, lastPaidAt, consecutivePayments, productId, free, new Route(route),
-				direction, transfersLeft);
+				direction, paidMarker);
+	}
+
+	/**
+	 * Block 10 shaped the way the card type {@code 0D375F} writes it: bytes 0 to 9
+	 * as the specification describes them, then a byte 10 no direction fits and a
+	 * byte 13 that is neither {@code 63} nor {@code 62}.
+	 */
+	static byte[] unreadableJourneySummary() {
+		byte[] block = Hex.bytes(journeySummaries().get(1).hex());
+		block[10] = 0x3d;
+		block[13] = 0x01;
+		return Hex.checksummed(block);
 	}
 
 	private static Optional<JourneySummary.Leg> leg(int route, Direction direction) {

@@ -14,17 +14,17 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>3.0.0</version>
+	<version>4.0.0</version>
 </dependency>
 ```
 
 Kotlin:
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:3.0.0")
+implementation("dev.hloth:zgz-transport:4.0.0")
 ```
 
-**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/3.0.0):**
+**From [git.hloth.dev Maven repository](https://git.hloth.dev/hloth/-/packages/maven/dev.hloth:zgz-transport/4.0.0):**
 
 Java:
 
@@ -41,7 +41,7 @@ Java:
 <dependency>
 	<groupId>dev.hloth</groupId>
 	<artifactId>zgz-transport</artifactId>
-	<version>3.0.0</version>
+	<version>4.0.0</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ repositories {
 ```
 
 ```kotlin
-implementation("dev.hloth:zgz-transport:3.0.0")
+implementation("dev.hloth:zgz-transport:4.0.0")
 ```
 
 ## Usage
@@ -68,6 +68,8 @@ for (Transaction t : card.transactions()) {
 	System.out.println(t.createdAt() + " " + t.route() + " " + t.amount());
 }
 ```
+
+`card.uid()` carries the UID and the chip apart from each other: the UID is four or seven bytes and either length can sit on a 4K card, so `uid.chip()` answers which chip it was read beside and `uid.bytes()` how long it is.
 
 `Dump` addresses the blocks of a card, so one structure can be read without slicing the array, and builds a dump block by block:
 
@@ -122,7 +124,20 @@ for (transaction in card.transactions) {
 	println("${transaction.createdAt} ${transaction.route} $what at $where")
 }
 
-val summary: JourneySummary? = card.journeySummary.getOrNull()
+val summary = when (val slot = card.journeySummary.getOrNull()) {
+	is JourneySummarySlot.Read -> slot.summary
+	is JourneySummarySlot.Unknown -> null
+	null -> null
+}
+```
+
+A card can write block 10 in a shape this version does not read. The rest of the card still decodes, and `journeySummary` then carries a `JourneySummarySlot.Unknown` holding the error; `JourneySummary.decode` itself stays strict:
+
+```java
+Optional<JourneySummarySlot> slot = card.journeySummary();
+if (slot.orElse(null) instanceof JourneySummarySlot.Read read) {
+	System.out.println(read.summary().route());
+}
 ```
 
 Build transactions with the builder rather than constructor in Kotlin.
@@ -133,12 +148,12 @@ The published jars are reproducible. Build from a git clone, since the timestamp
 
 ```sh
 git clone https://git.hloth.dev/hloth/zgz-transport.git && cd zgz-transport/lib/java
-git checkout v3.0.0
+git checkout v4.0.0
 ./mvnw -B -DskipTests package
 shasum -a 256 target/zgz-transport-*.jar
 
-curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/3.0.0/zgz-transport-3.0.0.jar
-shasum -a 256 zgz-transport-3.0.0.jar
+curl -sO https://repo1.maven.org/maven2/dev/hloth/zgz-transport/4.0.0/zgz-transport-4.0.0.jar
+shasum -a 256 zgz-transport-4.0.0.jar
 ```
 
 ## License

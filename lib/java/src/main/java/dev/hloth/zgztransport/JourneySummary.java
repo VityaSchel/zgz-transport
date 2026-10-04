@@ -26,12 +26,13 @@ import java.util.Optional;
  *            the route of the current journey
  * @param direction
  *            the direction of the current journey
- * @param transfersLeft
- *            {@code 0x63} after a paid journey and {@code 0x62} after a free
- *            transfer
+ * @param paidMarker
+ *            byte 13, {@code 0x63} after a paid journey and {@code 0x62} after
+ *            a free transfer on the known card types; other values are
+ *            unexplained, so it is kept as the card wrote it
  */
 public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int consecutivePayments, int productId,
-		boolean free, Route route, Direction direction, int transfersLeft) implements Encodable {
+		boolean free, Route route, Direction direction, int paidMarker) implements Encodable {
 
 	/**
 	 * A route and the direction travelled along it.
@@ -99,7 +100,7 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 		Objects.requireNonNull(direction, "direction");
 		Bytes.checkRange("consecutivePayments", consecutivePayments, 0, 0xff);
 		Bytes.checkRange("productId", productId, 0, 0xff);
-		Bytes.checkRange("transfersLeft", transfersLeft, 0, 0xff);
+		Bytes.checkRange("paidMarker", paidMarker, 0, 0xff);
 	}
 
 	/**
@@ -171,7 +172,7 @@ public record JourneySummary(Optional<Leg> previous, LastPaid lastPaidAt, int co
 		block[8] = (byte) (free ? 1 : 0);
 		block[9] = (byte) route.id();
 		block[10] = (byte) direction.value();
-		block[13] = (byte) transfersLeft;
+		block[13] = (byte) paidMarker;
 		return Bytes.withChecksum(block);
 	}
 }

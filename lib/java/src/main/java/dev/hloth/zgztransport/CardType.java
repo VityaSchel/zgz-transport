@@ -23,7 +23,14 @@ public enum CardType implements Encodable {
 	 */
 	AVANZA_PERSONAL_ABONO(0x0a_98_da, Chip.CLASSIC_1K, List.of(3, 4), false, Keys.AVANZA_PERSONAL),
 	/** A balance top up Lazo card. */
-	LAZO_TOP_UP(0x0d_37_1f, Chip.CLASSIC_4K, List.of(), true, Keys.LAZO);
+	LAZO_TOP_UP_371F(0x0d_37_1f, Chip.CLASSIC_4K, List.of(), true, Keys.LAZO),
+	/**
+	 * A balance top up Lazo card. What separates it from {@link #LAZO_TOP_UP_371F}
+	 * is unknown: a card carrying it holds the same keys, the same balance blocks,
+	 * the same transaction ring and the same empty product sectors, and rewrites
+	 * block 10 on every journey, with bytes 10 and 13 of it unidentified.
+	 */
+	LAZO_TOP_UP_375F(0x0d_37_5f, Chip.CLASSIC_4K, List.of(), true, Keys.LAZO);
 
 	private final int value;
 	private final Chip chip;

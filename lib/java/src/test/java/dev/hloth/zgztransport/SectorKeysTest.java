@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -34,21 +35,23 @@ class SectorKeysTest {
 	}
 
 	@Test
-	void givesLazoKeysPerSector() {
+	void givesLazoKeysPerSectorOnBothLazoProducts() {
 		Optional<SectorKeys> shared = keys("4E303D402F20", "243372407C2E");
-		for (int sector = 0; sector <= 31; sector++) {
-			assertEquals(shared, CardType.LAZO_TOP_UP.keys(sector));
-		}
-		assertEquals(keys("216F5B212A7A", "44202E476E5B"), CardType.LAZO_TOP_UP.keys(32));
-		assertEquals(keys("5148755C3427", "3C4520753758"), CardType.LAZO_TOP_UP.keys(33));
-		assertEquals(keys(null, "206F7C4C4F36"), CardType.LAZO_TOP_UP.keys(34));
-		assertEquals(keys("5246612E7C4B", null), CardType.LAZO_TOP_UP.keys(35));
-		assertEquals(keys("354B39454861", "567D734C403C"), CardType.LAZO_TOP_UP.keys(36));
-		assertEquals(keys("455D732C385F", "2426217B3B3B"), CardType.LAZO_TOP_UP.keys(37));
 		Optional<SectorKeys> factory = keys("FFFFFFFFFFFF", "FFFFFFFFFFFF");
-		assertEquals(factory, CardType.LAZO_TOP_UP.keys(38));
-		assertEquals(factory, CardType.LAZO_TOP_UP.keys(39));
-		assertEquals(Optional.empty(), CardType.LAZO_TOP_UP.keys(40));
+		for (CardType lazo : List.of(CardType.LAZO_TOP_UP_371F, CardType.LAZO_TOP_UP_375F)) {
+			for (int sector = 0; sector <= 31; sector++) {
+				assertEquals(shared, lazo.keys(sector));
+			}
+			assertEquals(keys("216F5B212A7A", "44202E476E5B"), lazo.keys(32));
+			assertEquals(keys("5148755C3427", "3C4520753758"), lazo.keys(33));
+			assertEquals(keys(null, "206F7C4C4F36"), lazo.keys(34));
+			assertEquals(keys("5246612E7C4B", null), lazo.keys(35));
+			assertEquals(keys("354B39454861", "567D734C403C"), lazo.keys(36));
+			assertEquals(keys("455D732C385F", "2426217B3B3B"), lazo.keys(37));
+			assertEquals(factory, lazo.keys(38));
+			assertEquals(factory, lazo.keys(39));
+			assertEquals(Optional.empty(), lazo.keys(40));
+		}
 	}
 
 	@Test
@@ -73,7 +76,7 @@ class SectorKeysTest {
 		assertArrayEquals(Hex.bytes("04000C0F0903"), key.bytes());
 		key.bytes()[0] = 0x7f;
 		assertEquals("04000C0F0903", key.toString());
-		assertTrue(CardType.LAZO_TOP_UP.keys(34).orElseThrow().a().isEmpty());
+		assertTrue(CardType.LAZO_TOP_UP_371F.keys(34).orElseThrow().a().isEmpty());
 	}
 
 	@Test
@@ -81,6 +84,6 @@ class SectorKeysTest {
 		assertThrows(CardFormatException.class, () -> Key.of(new byte[5]));
 		assertThrows(IllegalArgumentException.class, () -> Key.of("04000C0F09"));
 		assertThrows(IllegalArgumentException.class, () -> Key.of("04000C0F09ZZ"));
-		assertThrows(IllegalArgumentException.class, () -> CardType.LAZO_TOP_UP.keys(-1));
+		assertThrows(IllegalArgumentException.class, () -> CardType.LAZO_TOP_UP_371F.keys(-1));
 	}
 }
